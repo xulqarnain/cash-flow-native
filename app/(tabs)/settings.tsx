@@ -10,9 +10,10 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, Shadows, BorderRadius } from '@/constants/Theme';
-import { getAllPeople } from '@/database/peopleService';
+import { getAllPeople, createPerson } from '@/database/peopleService';
 import { getAllTransactions, createTransaction } from '@/database/transactionsService';
-import { createPerson } from '@/database/peopleService';
+import { getAllExpenses, createExpense } from '@/database/expensesService';
+import { getAllSalaries, createSalary } from '@/database/salariesService';
 import { resetDatabase } from '@/database/init';
 
 export default function SettingsScreen() {
@@ -25,9 +26,11 @@ export default function SettingsScreen() {
 
   const handleExportCSV = async () => {
     try {
-      const [people, transactions] = await Promise.all([
+      const [people, transactions, expenses, salaries] = await Promise.all([
         getAllPeople(),
         getAllTransactions(),
+        getAllExpenses(),
+        getAllSalaries(),
       ]);
 
       // Create CSV content
@@ -44,6 +47,20 @@ export default function SettingsScreen() {
       csvContent += 'ID,Person ID,Person Name,Amount,Type,Description,Category,Date,Created At\n';
       transactions.forEach(txn => {
         csvContent += `${txn.id},${txn.personId},"${txn.personName}",${txn.amount},"${txn.type}","${txn.description}","${txn.category || ''}","${txn.date}","${txn.createdAt}"\n`;
+      });
+
+      // Expenses CSV
+      csvContent += '\n=== EXPENSES ===\n';
+      csvContent += 'ID,Description,Amount,Date,Category,Created At\n';
+      expenses.forEach(expense => {
+        csvContent += `${expense.id},"${expense.description}",${expense.amount},"${expense.date}","${expense.category || ''}","${expense.createdAt}"\n`;
+      });
+
+      // Salaries CSV
+      csvContent += '\n=== SALARIES ===\n';
+      csvContent += 'ID,Description,Amount,Date,Status,Created At\n';
+      salaries.forEach(salary => {
+        csvContent += `${salary.id},"${salary.description}",${salary.amount},"${salary.date}","${salary.status}","${salary.createdAt}"\n`;
       });
 
       // Save to file
@@ -66,7 +83,7 @@ export default function SettingsScreen() {
   const handleImportCSV = async () => {
     Alert.alert(
       'Import CSV',
-      'This feature will import people and transactions from a CSV file. Make sure your CSV follows the export format.',
+      'This feature will import people, transactions, expenses, and salaries from a CSV file. Make sure your CSV follows the export format.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Continue', onPress: performImport },
@@ -92,6 +109,8 @@ export default function SettingsScreen() {
       let section = '';
       let importedPeople = 0;
       let importedTransactions = 0;
+      let importedExpenses = 0;
+      let importedSalaries = 0;
 
       for (const line of lines) {
         if (line.includes('=== PEOPLE ===')) {
@@ -99,6 +118,12 @@ export default function SettingsScreen() {
           continue;
         } else if (line.includes('=== TRANSACTIONS ===')) {
           section = 'transactions';
+          continue;
+        } else if (line.includes('=== EXPENSES ===')) {
+          section = 'expenses';
+          continue;
+        } else if (line.includes('=== SALARIES ===')) {
+          section = 'salaries';
           continue;
         } else if (line.includes('ID,') || line.trim() === '' || line.includes('Export Date:')) {
           continue;
@@ -132,12 +157,44 @@ export default function SettingsScreen() {
             });
             importedTransactions++;
           }
+        } else if (section === 'expenses') {
+          const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
+          if (parts && parts.length >= 5) {
+            const description = parts[1].replace(/"/g, '');
+            const amount = parseFloat(parts[2]);
+            const date = parts[3].replace(/"/g, '');
+            const category = parts[4].replace(/"/g, '') || undefined;
+
+            await createExpense({
+              description,
+              amount,
+              date,
+              category,
+            });
+            importedExpenses++;
+          }
+        } else if (section === 'salaries') {
+          const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
+          if (parts && parts.length >= 5) {
+            const description = parts[1].replace(/"/g, '');
+            const amount = parseFloat(parts[2]);
+            const date = parts[3].replace(/"/g, '');
+            const status = parts[4].replace(/"/g, '') as 'received' | 'not_received' | 'pending';
+
+            await createSalary({
+              description,
+              amount,
+              date,
+              status,
+            });
+            importedSalaries++;
+          }
         }
       }
 
       Alert.alert(
         'Import Complete',
-        `Imported ${importedPeople} people and ${importedTransactions} transactions`
+        `Imported:\n${importedPeople} people\n${importedTransactions} transactions\n${importedExpenses} expenses\n${importedSalaries} salaries`
       );
     } catch (error) {
       console.error('Error importing CSV:', error);
