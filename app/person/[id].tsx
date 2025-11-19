@@ -4,19 +4,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TransactionList } from '@/components/TransactionList';
+import { CurrencyText } from '@/components/CurrencyText';
 import { initDatabase } from '@/database/init';
 import { getPersonWithBalance, deletePerson } from '@/database/peopleService';
 import { getTransactionsByPerson } from '@/database/transactionsService';
 import type { PersonWithBalance, Transaction } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function PersonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { formatAmount } = useCurrency();
 
   const [person, setPerson] = useState<PersonWithBalance | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -83,11 +82,13 @@ export default function PersonDetailScreen() {
     ? '#f43f5e'
     : isDark ? '#9ca3af' : '#6b7280';
 
-  const balanceText = person.balance > 0
-    ? `Owes you ${formatAmount(person.balance)}`
+  const balanceLabel = person.balance > 0
+    ? 'Owes you'
     : person.balance < 0
-    ? `You owe ${formatAmount(Math.abs(person.balance))}`
+    ? 'You owe'
     : 'No balance';
+
+  const hasBalance = person.balance !== 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
@@ -129,12 +130,22 @@ export default function PersonDetailScreen() {
               borderColor: isDark ? '#374151' : '#e5e7eb',
             }
           ]}>
-            <Text style={[styles.balanceLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.balanceCardLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               Current Balance
             </Text>
-            <Text style={[styles.balanceAmount, { color: balanceColor }]}>
-              {balanceText}
-            </Text>
+            <View style={styles.balanceRow}>
+              <Text style={[styles.balanceText, { color: balanceColor }]}>
+                {balanceLabel}{hasBalance ? ' ' : ''}
+              </Text>
+              {hasBalance && (
+                <CurrencyText
+                  amount={Math.abs(person.balance)}
+                  symbolSize={11}
+                  amountSize={28}
+                  color={balanceColor}
+                />
+              )}
+            </View>
             <Text style={[styles.transactionCount, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
             </Text>
@@ -227,14 +238,18 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  balanceLabel: {
+  balanceCardLabel: {
     fontSize: 14,
     marginBottom: 8,
   },
-  balanceAmount: {
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  balanceText: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 8,
   },
   transactionCount: {
     fontSize: 14,

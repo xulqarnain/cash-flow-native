@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
 import { useCurrency, currencies, type Currency } from '@/contexts/CurrencyContext';
+import { useAppTheme, themeOptions, type AppTheme } from '@/contexts/ThemeContext';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
   const isDark = colorScheme === 'dark';
   const { language, setLanguage, t } = useLanguage();
   const { currency, setCurrency } = useCurrency();
+  const { theme, setTheme } = useAppTheme();
 
   const handleExportCSV = async () => {
     try {
@@ -258,6 +260,53 @@ export default function SettingsScreen() {
                 </View>
               </View>
               {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Theme Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+            Theme
+          </Text>
+
+          {themeOptions.map((themeOption) => (
+            <TouchableOpacity
+              key={themeOption.id}
+              style={[
+                styles.settingItem,
+                {
+                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                  borderColor: theme === themeOption.id ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
+                  borderWidth: theme === themeOption.id ? 2 : 1,
+                }
+              ]}
+              onPress={() => setTheme(themeOption.id)}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons
+                  name={
+                    themeOption.id === 'gradient-black' ? 'color-filter-outline' :
+                    themeOption.id === 'glass-blur' ? 'sparkles-outline' :
+                    'square-outline'
+                  }
+                  size={24}
+                  color={
+                    themeOption.id === 'gradient-black' ? '#8b5cf6' :
+                    themeOption.id === 'glass-blur' ? '#06b6d4' :
+                    '#ffffff'
+                  }
+                />
+                <View style={styles.settingText}>
+                  <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                    {themeOption.name}
+                  </Text>
+                  <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                    {themeOption.description}
+                  </Text>
+                </View>
+              </View>
+              {theme === themeOption.id && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
             </TouchableOpacity>
           ))}
         </View>

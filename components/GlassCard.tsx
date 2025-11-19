@@ -10,11 +10,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { CurrencyText } from './CurrencyText';
 import { BorderRadius, Shadows, Spacing, Typography, Gradients } from '@/constants/Theme';
 
 interface GlassCardProps {
   title: string;
-  value: string;
+  value: number;
   subtitle?: string;
   variant?: 'primary' | 'success' | 'danger';
 }
@@ -52,7 +53,12 @@ export function GlassCard({ title, value, subtitle, variant = 'primary' }: Glass
       style={[styles.card, Shadows.lg, animatedStyle]}
     >
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <CurrencyText
+        amount={value}
+        symbolSize={14}
+        amountSize={Typography.sizes['4xl']}
+        color="#ffffff"
+      />
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </AnimatedLinearGradient>
   );

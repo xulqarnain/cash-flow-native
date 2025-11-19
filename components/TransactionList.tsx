@@ -2,7 +2,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import type { Transaction, TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { CurrencyText } from './CurrencyText';
 
 interface TransactionListProps {
   transactions: Transaction[] | TransactionWithPerson[];
@@ -19,7 +19,6 @@ export function TransactionList({
 }: TransactionListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { formatAmount } = useCurrency();
 
   const renderItem = ({ item }: { item: Transaction | TransactionWithPerson }) => {
     const isIncoming = item.type === 'incoming';
@@ -89,9 +88,17 @@ export function TransactionList({
           </View>
         </View>
 
-        <Text style={[styles.amount, { color: amountColor }]}>
-          {amountPrefix}{formatAmount(item.amount)}
-        </Text>
+        <View style={styles.amountContainer}>
+          <Text style={[styles.amountPrefix, { color: amountColor }]}>
+            {amountPrefix}
+          </Text>
+          <CurrencyText
+            amount={item.amount}
+            symbolSize={9}
+            amountSize={18}
+            color={amountColor}
+          />
+        </View>
       </TouchableOpacity>
     );
   };
@@ -172,10 +179,15 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 12,
   },
-  amount: {
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginLeft: 12,
+  },
+  amountPrefix: {
     fontSize: 18,
     fontWeight: '700',
-    marginLeft: 12,
+    marginRight: 2,
   },
   emptyContainer: {
     flex: 1,

@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/contexts/ThemeContext';
 import { Colors, BorderRadius, Shadows } from '@/constants/Theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -19,108 +20,124 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { theme: appTheme, getTabBarStyle } = useAppTheme();
+  const tabBarStyle = getTabBarStyle();
+
+  const renderTabBarContent = () => (
+    <View style={styles.tabsContainer}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        const onLongPress = () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        // Icon mapping
+        const iconName = (() => {
+          switch (route.name) {
+            case 'index':
+              return isFocused ? 'home' : 'home-outline';
+            case 'payments':
+              return isFocused ? 'wallet' : 'wallet-outline';
+            case 'history':
+              return isFocused ? 'time' : 'time-outline';
+            case 'settings':
+              return isFocused ? 'settings' : 'settings-outline';
+            default:
+              return 'ellipse';
+          }
+        })();
+
+        const scale = useSharedValue(1);
+
+        const animatedStyle = useAnimatedStyle(() => ({
+          transform: [{ scale: scale.value }],
+        }));
+
+        const handlePressIn = () => {
+          scale.value = withSpring(0.85, { damping: 10 });
+        };
+
+        const handlePressOut = () => {
+          scale.value = withSpring(1, { damping: 10 });
+        };
+
+        return (
+          <AnimatedTouchableOpacity
+            key={route.name}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={[styles.tab, animatedStyle]}
+          >
+            {isFocused ? (
+              <LinearGradient
+                colors={['#06b6d4', '#22d3ee']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.activeTab, Shadows.md]}
+              >
+                <Ionicons name={iconName as any} size={24} color="#ffffff" />
+              </LinearGradient>
+            ) : (
+              <View style={styles.inactiveTab}>
+                <Ionicons name={iconName as any} size={24} color="#67e8f9" />
+              </View>
+            )}
+          </AnimatedTouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <BlurView
-        intensity={isDark ? 80 : 60}
-        tint={isDark ? 'dark' : 'light'}
-        style={[
-          styles.tabBar,
-          {
-            borderTopColor: theme.border,
-          },
-        ]}
-      >
-        <View style={styles.tabsContainer}>
-          {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
-            const isFocused = state.index === index;
-
-            const onPress = () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            };
-
-            const onLongPress = () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              navigation.emit({
-                type: 'tabLongPress',
-                target: route.key,
-              });
-            };
-
-            // Icon mapping
-            const iconName = (() => {
-              switch (route.name) {
-                case 'index':
-                  return isFocused ? 'home' : 'home-outline';
-                case 'payments':
-                  return isFocused ? 'wallet' : 'wallet-outline';
-                case 'history':
-                  return isFocused ? 'time' : 'time-outline';
-                case 'settings':
-                  return isFocused ? 'settings' : 'settings-outline';
-                default:
-                  return 'ellipse';
-              }
-            })();
-
-            const scale = useSharedValue(1);
-
-            const animatedStyle = useAnimatedStyle(() => ({
-              transform: [{ scale: scale.value }],
-            }));
-
-            const handlePressIn = () => {
-              scale.value = withSpring(0.85, { damping: 10 });
-            };
-
-            const handlePressOut = () => {
-              scale.value = withSpring(1, { damping: 10 });
-            };
-
-            return (
-              <AnimatedTouchableOpacity
-                key={route.name}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                accessibilityLabel={options.tabBarAccessibilityLabel}
-                testID={options.tabBarTestID}
-                onPress={onPress}
-                onLongPress={onLongPress}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                style={[styles.tab, animatedStyle]}
-              >
-                {isFocused ? (
-                  <LinearGradient
-                    colors={['#6366f1', '#8b5cf6']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.activeTab, Shadows.md]}
-                  >
-                    <Ionicons name={iconName as any} size={24} color="#ffffff" />
-                  </LinearGradient>
-                ) : (
-                  <View style={styles.inactiveTab}>
-                    <Ionicons name={iconName as any} size={24} color={theme.textTertiary} />
-                  </View>
-                )}
-              </AnimatedTouchableOpacity>
-            );
-          })}
+      {appTheme === 'glass-blur' ? (
+        <BlurView
+          intensity={80}
+          tint={isDark ? 'dark' : 'light'}
+          style={[styles.tabBar, tabBarStyle]}
+        >
+          {renderTabBarContent()}
+        </BlurView>
+      ) : appTheme === 'gradient-black' ? (
+        <LinearGradient
+          colors={['rgba(0, 0, 0, 0.95)', 'rgba(15, 23, 42, 0.9)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.tabBar, tabBarStyle]}
+        >
+          {renderTabBarContent()}
+        </LinearGradient>
+      ) : (
+        <View style={[styles.tabBar, tabBarStyle, { backgroundColor: '#000000' }]}>
+          {renderTabBarContent()}
         </View>
-      </BlurView>
+      )}
     </View>
   );
 }

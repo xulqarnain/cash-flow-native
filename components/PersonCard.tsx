@@ -10,7 +10,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import type { PersonWithBalance } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { CurrencyText } from './CurrencyText';
 import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 
 interface PersonCardProps {
@@ -25,7 +25,6 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
-  const { formatAmount } = useCurrency();
 
   const scale = useSharedValue(1);
 
@@ -35,11 +34,13 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
     ? theme.danger
     : theme.textTertiary;
 
-  const balanceText = person.balance > 0
-    ? `Owes you ${formatAmount(person.balance)}`
+  const balanceLabel = person.balance > 0
+    ? 'Owes you'
     : person.balance < 0
-    ? `You owe ${formatAmount(Math.abs(person.balance))}`
+    ? 'You owe'
     : 'No balance';
+
+  const hasBalance = person.balance !== 0;
 
   const iconGradient = person.balance > 0
     ? ['#10b981', '#14b8a6']
@@ -105,9 +106,19 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
 
       <View style={styles.footer}>
         <View>
-          <Text style={[styles.balance, { color: balanceColor }]}>
-            {balanceText}
-          </Text>
+          <View style={styles.balanceRow}>
+            <Text style={[styles.balanceLabel, { color: balanceColor }]}>
+              {balanceLabel}{hasBalance ? ' ' : ''}
+            </Text>
+            {hasBalance && (
+              <CurrencyText
+                amount={Math.abs(person.balance)}
+                symbolSize={9}
+                amountSize={Typography.sizes.base}
+                color={balanceColor}
+              />
+            )}
+          </View>
           <Text style={[styles.transactionCount, { color: theme.textTertiary }]}>
             {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
           </Text>
@@ -151,10 +162,14 @@ const styles = StyleSheet.create({
   footer: {
     paddingLeft: 60,
   },
-  balance: {
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Spacing.xs,
+  },
+  balanceLabel: {
     fontSize: Typography.sizes.base,
     fontWeight: Typography.weights.bold,
-    marginBottom: Spacing.xs,
   },
   transactionCount: {
     fontSize: Typography.sizes.xs,

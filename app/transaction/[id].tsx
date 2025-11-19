@@ -9,7 +9,7 @@ import { getTransactionById, deleteTransaction } from '@/database/transactionsSe
 import { getPersonWithBalance } from '@/database/peopleService';
 import type { Transaction, PersonWithBalance } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { CurrencyText } from '@/components/CurrencyText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
 
@@ -19,7 +19,6 @@ export default function TransactionDetailScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
-  const { formatAmount } = useCurrency();
   const { t } = useLanguage();
 
   const [transaction, setTransaction] = useState<Transaction | null>(null);
@@ -128,9 +127,12 @@ export default function TransactionDetailScreen() {
             <Text style={styles.amountLabel}>
               {isIncoming ? t('incoming') : t('outgoing')}
             </Text>
-            <Text style={styles.amount}>
-              {formatAmount(transaction.amount)}
-            </Text>
+            <CurrencyText
+              amount={transaction.amount}
+              symbolSize={14}
+              amountSize={Typography.sizes['4xl']}
+              color="#ffffff"
+            />
           </LinearGradient>
         </View>
 
