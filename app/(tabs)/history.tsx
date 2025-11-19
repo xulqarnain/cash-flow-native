@@ -9,11 +9,13 @@ import { initDatabase } from '@/database/init';
 import { getAllTransactions, searchTransactions } from '@/database/transactionsService';
 import type { TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, Shadows, BorderRadius, Spacing } from '@/constants/Theme';
 
 export default function HistoryScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const [transactions, setTransactions] = useState<TransactionWithPerson[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,7 +57,7 @@ export default function HistoryScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
+        <Text style={[styles.title, { color: themeColors.text }]}>
           Transaction History
         </Text>
 
@@ -63,23 +65,24 @@ export default function HistoryScreen() {
         <View style={[
           styles.searchContainer,
           {
-            backgroundColor: isDark ? '#1f2937' : '#ffffff',
-            borderColor: isDark ? '#374151' : '#e5e7eb',
-          }
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+          },
+          Shadows.base
         ]}>
           <Ionicons
             name="search"
             size={20}
-            color={isDark ? '#9ca3af' : '#6b7280'}
+            color={themeColors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
             style={[
               styles.searchInput,
-              { color: isDark ? '#f9fafb' : '#111827' }
+              { color: themeColors.text }
             ]}
             placeholder="Search transactions..."
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
+            placeholderTextColor={themeColors.textTertiary}
             value={searchQuery}
             onChangeText={handleSearch}
           />
@@ -88,7 +91,7 @@ export default function HistoryScreen() {
               <Ionicons
                 name="close-circle"
                 size={20}
-                color={isDark ? '#9ca3af' : '#6b7280'}
+                color={themeColors.textSecondary}
               />
             </TouchableOpacity>
           )}
@@ -98,7 +101,8 @@ export default function HistoryScreen() {
         <TouchableOpacity
           style={[
             styles.addButton,
-            { backgroundColor: isDark ? '#22d3ee' : '#22d3ee' }
+            { backgroundColor: themeColors.primary },
+            Shadows.md
           ]}
           onPress={() => router.push('/add-transaction')}
         >
@@ -128,25 +132,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 16,
-    paddingTop: 8,
+    padding: Spacing.base,
+    paddingTop: Spacing.sm,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: Spacing.base,
+    letterSpacing: -0.5,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: BorderRadius.base,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: 12,
+    marginBottom: Spacing.base,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: Spacing.sm,
   },
   searchInput: {
     flex: 1,
@@ -156,14 +161,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: BorderRadius.base,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.base,
   },
   addButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: Spacing.sm,
   },
 });
