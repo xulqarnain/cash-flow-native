@@ -58,6 +58,10 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               return isFocused ? 'home' : 'home-outline';
             case 'payments':
               return isFocused ? 'wallet' : 'wallet-outline';
+            case 'expenses':
+              return isFocused ? 'receipt' : 'receipt-outline';
+            case 'salaries':
+              return isFocused ? 'cash' : 'cash-outline';
             case 'history':
               return isFocused ? 'time' : 'time-outline';
             case 'settings':
@@ -101,11 +105,11 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                 end={{ x: 1, y: 1 }}
                 style={[styles.activeTab, Shadows.md]}
               >
-                <Ionicons name={iconName as any} size={24} color="#ffffff" />
+                <Ionicons name={iconName as any} size={20} color="#ffffff" />
               </LinearGradient>
             ) : (
               <View style={styles.inactiveTab}>
-                <Ionicons name={iconName as any} size={24} color="#67e8f9" />
+                <Ionicons name={iconName as any} size={20} color="#67e8f9" />
               </View>
             )}
           </AnimatedTouchableOpacity>
@@ -183,15 +187,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeTab: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inactiveTab: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },

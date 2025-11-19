@@ -41,6 +41,30 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     CREATE INDEX IF NOT EXISTS idx_transactions_personId ON transactions(personId);
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      category TEXT,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+    CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+
+    CREATE TABLE IF NOT EXISTS salaries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('received', 'not_received', 'pending')),
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_salaries_date ON salaries(date);
+    CREATE INDEX IF NOT EXISTS idx_salaries_status ON salaries(status);
   `);
 
   return db;
@@ -111,6 +135,8 @@ export async function resetDatabase(): Promise<void> {
   await database.execAsync(`
     DROP TABLE IF EXISTS transactions;
     DROP TABLE IF EXISTS people;
+    DROP TABLE IF EXISTS expenses;
+    DROP TABLE IF EXISTS salaries;
   `);
   await closeDatabase();
   await initDatabase();
