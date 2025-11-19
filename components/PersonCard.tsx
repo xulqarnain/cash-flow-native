@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -17,9 +17,10 @@ interface PersonCardProps {
   onPress?: () => void;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(Link);
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function PersonCard({ person, onPress }: PersonCardProps) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
@@ -57,15 +58,25 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
     scale.value = withSpring(1, { damping: 15 });
   };
 
-  const card = (
-    <Animated.View style={[
-      styles.card,
-      {
-        backgroundColor: theme.surface,
-      },
-      Shadows.base,
-      animatedStyle,
-    ]}>
+  const handlePress = () => {
+    router.push(`/person/${person.id}`);
+  };
+
+  return (
+    <AnimatedTouchable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={0.9}
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.surface,
+        },
+        Shadows.base,
+        animatedStyle,
+      ]}
+    >
       <View style={styles.content}>
         <LinearGradient
           colors={iconGradient}
@@ -100,17 +111,6 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
           </Text>
         </View>
       </View>
-    </Animated.View>
-  );
-
-  return (
-    <AnimatedTouchable
-      href={`/person/${person.id}`}
-      asChild
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
-      {card}
     </AnimatedTouchable>
   );
 }
