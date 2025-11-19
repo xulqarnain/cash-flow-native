@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 
 interface FlowCardProps {
@@ -23,6 +24,7 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { formatAmount } = useCurrency();
 
   const isIncoming = type === 'incoming';
   const icon = isIncoming ? 'trending-down' : 'trending-up';
@@ -75,7 +77,7 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
       </View>
 
       <Text style={[styles.amount, { color: theme.text }]}>
-        ${amount.toFixed(2)}
+        {formatAmount(amount)}
       </Text>
 
       {count !== undefined && (

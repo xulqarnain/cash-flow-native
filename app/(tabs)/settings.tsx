@@ -2,6 +2,7 @@ import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
+import { useCurrency, currencies, type Currency } from '@/contexts/CurrencyContext';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -15,6 +16,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { language, setLanguage, t } = useLanguage();
+  const { currency, setCurrency } = useCurrency();
 
   const handleExportCSV = async () => {
     try {
@@ -226,6 +228,38 @@ export default function SettingsScreen() {
             </View>
             {language === 'ur' && <Ionicons name="checkmark-circle" size={24} color="#ec4899" />}
           </TouchableOpacity>
+        </View>
+
+        {/* Currency Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+            Currency
+          </Text>
+
+          {currencies.map((curr) => (
+            <TouchableOpacity
+              key={curr.code}
+              style={[
+                styles.settingItem,
+                {
+                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                  borderColor: currency === curr.code ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                  borderWidth: currency === curr.code ? 2 : 1,
+                }
+              ]}
+              onPress={() => setCurrency(curr.code)}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="cash-outline" size={24} color="#10b981" />
+                <View style={styles.settingText}>
+                  <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                    {curr.symbol} - {curr.name}
+                  </Text>
+                </View>
+              </View>
+              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color="#6366f1" />}
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Data Management Section */}

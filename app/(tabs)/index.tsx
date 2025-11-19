@@ -12,12 +12,14 @@ import { getDashboardStats, getChartData, type ChartDataPoint } from '@/database
 import { getPeopleWithBalances } from '@/database/peopleService';
 import type { PersonWithBalance, DashboardStats } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Colors, Spacing, Typography } from '@/constants/Theme';
 
 export default function DashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { formatAmount } = useCurrency();
 
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
@@ -83,7 +85,7 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <GlassCard
             title="Total Balance"
-            value={`$${stats.totalBalance.toFixed(2)}`}
+            value={formatAmount(stats.totalBalance)}
             subtitle={`${stats.transactionCount} total transactions`}
             variant={balanceVariant}
           />

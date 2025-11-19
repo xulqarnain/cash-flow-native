@@ -10,6 +10,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import type { PersonWithBalance } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 
 interface PersonCardProps {
@@ -24,6 +25,7 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { formatAmount } = useCurrency();
 
   const scale = useSharedValue(1);
 
@@ -34,9 +36,9 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
     : theme.textTertiary;
 
   const balanceText = person.balance > 0
-    ? `Owes you $${person.balance.toFixed(2)}`
+    ? `Owes you ${formatAmount(person.balance)}`
     : person.balance < 0
-    ? `You owe $${Math.abs(person.balance).toFixed(2)}`
+    ? `You owe ${formatAmount(Math.abs(person.balance))}`
     : 'No balance';
 
   const iconGradient = person.balance > 0

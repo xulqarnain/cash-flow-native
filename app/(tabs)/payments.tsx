@@ -18,6 +18,7 @@ import { getAllTransactions } from '@/database/transactionsService';
 import type { TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -27,6 +28,7 @@ export default function PaymentsScreen() {
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
+  const { formatAmount } = useCurrency();
   const router = useRouter();
 
   const [transactions, setTransactions] = useState<TransactionWithPerson[]>([]);
@@ -88,7 +90,7 @@ export default function PaymentsScreen() {
             >
               <Ionicons name="arrow-down" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_receive')}</Text>
-              <Text style={styles.summaryAmount}>${totalToReceive.toFixed(2)}</Text>
+              <Text style={styles.summaryAmount}>{formatAmount(totalToReceive)}</Text>
               <Text style={styles.summaryCount}>{transactionsToReceive.length} txns</Text>
             </LinearGradient>
           </View>
@@ -102,7 +104,7 @@ export default function PaymentsScreen() {
             >
               <Ionicons name="arrow-up" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_pay')}</Text>
-              <Text style={styles.summaryAmount}>${totalToPay.toFixed(2)}</Text>
+              <Text style={styles.summaryAmount}>{formatAmount(totalToPay)}</Text>
               <Text style={styles.summaryCount}>{transactionsToPay.length} txns</Text>
             </LinearGradient>
           </View>
@@ -142,6 +144,7 @@ export default function PaymentsScreen() {
                 index={index}
                 isDark={isDark}
                 theme={theme}
+                formatAmount={formatAmount}
                 onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
@@ -182,6 +185,7 @@ export default function PaymentsScreen() {
                 index={index}
                 isDark={isDark}
                 theme={theme}
+                formatAmount={formatAmount}
                 onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
@@ -198,23 +202,30 @@ interface TransactionCardProps {
   index: number;
   isDark: boolean;
   theme: any;
+  formatAmount: (amount: number) => string;
   onPress: () => void;
 }
 
-function TransactionCard({ transaction, type, index, isDark, theme, onPress }: TransactionCardProps) {
+function TransactionCard({ transaction, type, index, isDark, theme, formatAmount, onPress }: TransactionCardProps) {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
+  const opacity = useSharedValue(1);
+  const translateY = useSharedValue(0);
+  const hasAnimated = React.useRef(false);
 
   React.useEffect(() => {
-    opacity.value = withDelay(
-      index * 30,
-      withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) })
-    );
-    translateY.value = withDelay(
-      index * 30,
-      withSpring(0, { damping: 15 })
-    );
+    if (!hasAnimated.current) {
+      opacity.value = 0;
+      translateY.value = 20;
+      opacity.value = withDelay(
+        index * 30,
+        withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) })
+      );
+      translateY.value = withDelay(
+        index * 30,
+        withSpring(0, { damping: 15 })
+      );
+      hasAnimated.current = true;
+    }
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -295,7 +306,7 @@ function TransactionCard({ transaction, type, index, isDark, theme, onPress }: T
         styles.amount,
         { color: type === 'receive' ? theme.success : theme.danger }
       ]}>
-        ${transaction.amount.toFixed(2)}
+        {formatAmount(transaction.amount)}
       </Text>
     </AnimatedTouchable>
   );

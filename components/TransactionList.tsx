@@ -2,6 +2,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import type { Transaction, TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface TransactionListProps {
   transactions: Transaction[] | TransactionWithPerson[];
@@ -18,6 +19,7 @@ export function TransactionList({
 }: TransactionListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { formatAmount } = useCurrency();
 
   const renderItem = ({ item }: { item: Transaction | TransactionWithPerson }) => {
     const isIncoming = item.type === 'incoming';
@@ -88,7 +90,7 @@ export function TransactionList({
         </View>
 
         <Text style={[styles.amount, { color: amountColor }]}>
-          {amountPrefix}${item.amount.toFixed(2)}
+          {amountPrefix}{formatAmount(item.amount)}
         </Text>
       </TouchableOpacity>
     );

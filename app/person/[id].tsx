@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TransactionList } from '@/components/TransactionList';
@@ -8,12 +9,14 @@ import { getPersonWithBalance, deletePerson } from '@/database/peopleService';
 import { getTransactionsByPerson } from '@/database/transactionsService';
 import type { PersonWithBalance, Transaction } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function PersonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { formatAmount } = useCurrency();
 
   const [person, setPerson] = useState<PersonWithBalance | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -64,13 +67,13 @@ export default function PersonDetailScreen() {
 
   if (!person) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
             Loading...
           </Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -81,13 +84,13 @@ export default function PersonDetailScreen() {
     : isDark ? '#9ca3af' : '#6b7280';
 
   const balanceText = person.balance > 0
-    ? `Owes you $${person.balance.toFixed(2)}`
+    ? `Owes you ${formatAmount(person.balance)}`
     : person.balance < 0
-    ? `You owe $${Math.abs(person.balance).toFixed(2)}`
+    ? `You owe ${formatAmount(Math.abs(person.balance))}`
     : 'No balance';
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -159,7 +162,7 @@ export default function PersonDetailScreen() {
           emptyMessage="No transactions yet. Add one to get started!"
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
