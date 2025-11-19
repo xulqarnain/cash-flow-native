@@ -87,7 +87,7 @@ export default function TransactionDetailScreen() {
   }
 
   const isIncoming = transaction.type === 'incoming';
-  const gradientColors = isIncoming ? ['#10b981', '#14b8a6'] : ['#ef4444', '#f43f5e'];
+  const gradientColors = isIncoming ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185'];
   const iconName = isIncoming ? 'arrow-down' : 'arrow-up';
 
   const formatDate = (dateString: string) => {
@@ -218,18 +218,18 @@ export default function TransactionDetailScreen() {
           onPress={handleEdit}
           style={[styles.button, { backgroundColor: theme.surface, borderColor: theme.border }, Shadows.base]}
         >
-          <Ionicons name="pencil" size={20} color="#6366f1" />
-          <Text style={[styles.buttonText, { color: '#6366f1' }]}>
+          <Ionicons name="pencil" size={20} color="#06b6d4" />
+          <Text style={[styles.buttonText, { color: '#06b6d4' }]}>
             Edit
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleDelete}
-          style={[styles.button, { backgroundColor: theme.surface, borderColor: '#ef4444' }, Shadows.base]}
+          style={[styles.button, { backgroundColor: theme.surface, borderColor: '#f43f5e' }, Shadows.base]}
         >
-          <Ionicons name="trash-outline" size={20} color="#ef4444" />
-          <Text style={[styles.buttonText, { color: '#ef4444' }]}>
+          <Ionicons name="trash-outline" size={20} color="#f43f5e" />
+          <Text style={[styles.buttonText, { color: '#f43f5e' }]}>
             Delete
           </Text>
         </TouchableOpacity>

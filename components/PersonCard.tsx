@@ -44,8 +44,8 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
   const iconGradient = person.balance > 0
     ? ['#10b981', '#14b8a6']
     : person.balance < 0
-    ? ['#ef4444', '#f43f5e']
-    : isDark ? ['#374151', '#4b5563'] : ['#e5e7eb', '#d1d5db'];
+    ? ['#f43f5e', '#fb7185']
+    : isDark ? ['#0e7490', '#155e75'] : ['#a5f3fc', '#cffafe'];
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

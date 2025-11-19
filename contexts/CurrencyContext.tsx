@@ -22,6 +22,8 @@ interface CurrencyContextType {
   currency: Currency;
   setCurrency: (curr: Currency) => Promise<void>;
   formatAmount: (amount: number) => string;
+  getCurrencySymbol: () => Currency;
+  getAmountWithoutSymbol: (amount: number) => string;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -65,8 +67,16 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     return `${currency} ${formattedNumber}`;
   };
 
+  const getCurrencySymbol = (): Currency => {
+    return currency;
+  };
+
+  const getAmountWithoutSymbol = (amount: number): string => {
+    return amount.toFixed(2);
+  };
+
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatAmount }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatAmount, getCurrencySymbol, getAmountWithoutSymbol }}>
       {children}
     </CurrencyContext.Provider>
   );

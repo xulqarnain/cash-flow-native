@@ -51,7 +51,7 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
 
   const iconGradient = isIncoming
     ? ['#10b981', '#14b8a6']
-    : ['#ef4444', '#f43f5e'];
+    : ['#f43f5e', '#fb7185'];
 
   return (
     <Animated.View style={[

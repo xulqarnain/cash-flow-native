@@ -136,7 +136,7 @@ export default function PaymentsScreen() {
               }}
               style={[
                 styles.filterButton,
-                { backgroundColor: hasActiveFilters ? '#6366f1' : theme.surface },
+                { backgroundColor: hasActiveFilters ? '#06b6d4' : theme.surface },
                 Shadows.base,
               ]}
             >
@@ -223,10 +223,10 @@ export default function PaymentsScreen() {
             {hasActiveFilters && (
               <TouchableOpacity
                 onPress={clearFilters}
-                style={[styles.clearButton, { backgroundColor: theme.background, borderColor: '#ef4444' }, Shadows.sm]}
+                style={[styles.clearButton, { backgroundColor: theme.background, borderColor: '#f43f5e' }, Shadows.sm]}
               >
-                <Ionicons name="close-circle" size={18} color="#ef4444" />
-                <Text style={[styles.clearButtonText, { color: '#ef4444' }]}>
+                <Ionicons name="close-circle" size={18} color="#f43f5e" />
+                <Text style={[styles.clearButtonText, { color: '#f43f5e' }]}>
                   Clear Filters
                 </Text>
               </TouchableOpacity>
@@ -252,7 +252,7 @@ export default function PaymentsScreen() {
 
           <View style={[styles.summaryCard, { flex: 1, marginLeft: Spacing.sm }]}>
             <LinearGradient
-              colors={['#ef4444', '#f43f5e']}
+              colors={['#f43f5e', '#fb7185']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.summaryGradient, Shadows.md]}
@@ -311,7 +311,7 @@ export default function PaymentsScreen() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <LinearGradient
-                colors={['#ef4444', '#f43f5e']}
+                colors={['#f43f5e', '#fb7185']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.sectionIcon}
@@ -402,7 +402,7 @@ function TransactionCard({ transaction, type, index, isDark, theme, formatAmount
 
   const gradient = type === 'receive'
     ? ['#10b981', '#14b8a6']
-    : ['#ef4444', '#f43f5e'];
+    : ['#f43f5e', '#fb7185'];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

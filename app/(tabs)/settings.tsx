@@ -184,14 +184,14 @@ export default function SettingsScreen() {
               styles.settingItem,
               {
                 backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: language === 'en' ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                borderColor: language === 'en' ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
                 borderWidth: language === 'en' ? 2 : 1,
               }
             ]}
             onPress={() => setLanguage('en')}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="language-outline" size={24} color="#6366f1" />
+              <Ionicons name="language-outline" size={24} color="#06b6d4" />
               <View style={styles.settingText}>
                 <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
                   {t('english')}
@@ -201,7 +201,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color="#6366f1" />}
+            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -209,7 +209,7 @@ export default function SettingsScreen() {
               styles.settingItem,
               {
                 backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: language === 'ur' ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                borderColor: language === 'ur' ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
                 borderWidth: language === 'ur' ? 2 : 1,
               }
             ]}
@@ -243,7 +243,7 @@ export default function SettingsScreen() {
                 styles.settingItem,
                 {
                   backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                  borderColor: currency === curr.code ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                  borderColor: currency === curr.code ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
                   borderWidth: currency === curr.code ? 2 : 1,
                 }
               ]}
@@ -257,7 +257,7 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color="#6366f1" />}
+              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
             </TouchableOpacity>
           ))}
         </View>
@@ -279,7 +279,7 @@ export default function SettingsScreen() {
             onPress={handleExportCSV}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="download-outline" size={24} color="#3b82f6" />
+              <Ionicons name="download-outline" size={24} color="#22d3ee" />
               <View style={styles.settingText}>
                 <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
                   Export Data (CSV)
@@ -319,7 +319,7 @@ export default function SettingsScreen() {
 
         {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: '#ef4444' }]}>
+          <Text style={[styles.sectionTitle, { color: '#f43f5e' }]}>
             Danger Zone
           </Text>
 
@@ -328,16 +328,16 @@ export default function SettingsScreen() {
               styles.settingItem,
               {
                 backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: '#ef4444',
+                borderColor: '#f43f5e',
                 borderWidth: 1,
               }
             ]}
             onPress={handleResetDatabase}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="trash-outline" size={24} color="#ef4444" />
+              <Ionicons name="trash-outline" size={24} color="#f43f5e" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: '#ef4444' }]}>
+                <Text style={[styles.settingTitle, { color: '#f43f5e' }]}>
                   Reset Database
                 </Text>
                 <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
@@ -345,7 +345,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ef4444" />
+            <Ionicons name="chevron-forward" size={20} color="#f43f5e" />
           </TouchableOpacity>
         </View>
 

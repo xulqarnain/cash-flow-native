@@ -80,7 +80,7 @@ export default function PersonDetailScreen() {
   const balanceColor = person.balance > 0
     ? '#10b981'
     : person.balance < 0
-    ? '#ef4444'
+    ? '#f43f5e'
     : isDark ? '#9ca3af' : '#6b7280';
 
   const balanceText = person.balance > 0
@@ -98,14 +98,14 @@ export default function PersonDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={isDark ? '#f9fafb' : '#111827'} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDeletePerson} style={styles.deleteButton}>
-            <Ionicons name="trash-outline" size={24} color="#ef4444" />
+            <Ionicons name="trash-outline" size={24} color="#f43f5e" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.personInfo}>
           <View style={[
             styles.avatar,
-            { backgroundColor: isDark ? '#3b82f6' : '#60a5fa' }
+            { backgroundColor: isDark ? '#22d3ee' : '#22d3ee' }
           ]}>
             <Text style={styles.avatarText}>
               {person.name.charAt(0).toUpperCase()}
@@ -152,7 +152,7 @@ export default function PersonDetailScreen() {
             style={styles.addTransactionButton}
             onPress={() => router.push(`/add-transaction?personId=${id}`)}
           >
-            <Ionicons name="add-circle" size={28} color="#3b82f6" />
+            <Ionicons name="add-circle" size={28} color="#22d3ee" />
           </TouchableOpacity>
         </View>
 

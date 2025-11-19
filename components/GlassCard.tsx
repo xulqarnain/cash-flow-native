@@ -39,9 +39,9 @@ export function GlassCard({ title, value, subtitle, variant = 'primary' }: Glass
   }));
 
   const gradientColors = {
-    primary: isDark ? ['#6366f1', '#8b5cf6', '#d946ef'] : Gradients.primary,
-    success: isDark ? ['#10b981', '#14b8a6', '#06b6d4'] : Gradients.success,
-    danger: isDark ? ['#ef4444', '#f43f5e', '#ec4899'] : Gradients.danger,
+    primary: isDark ? ['#0891b2', '#06b6d4', '#22d3ee'] : Gradients.primary,
+    success: isDark ? ['#10b981', '#14b8a6', '#22d3ee'] : Gradients.success,
+    danger: isDark ? ['#f43f5e', '#fb7185', '#fda4af'] : Gradients.danger,
   };
 
   return (

@@ -196,7 +196,7 @@ export default function EditTransactionModal() {
             {/* Icon Header */}
             <View style={styles.iconHeader}>
               <LinearGradient
-                colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#ef4444', '#f43f5e']}
+                colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.iconCircle}
@@ -250,7 +250,7 @@ export default function EditTransactionModal() {
                   }}
                 >
                   <LinearGradient
-                    colors={type === 'outgoing' ? ['#ef4444', '#f43f5e'] : ['transparent', 'transparent']}
+                    colors={type === 'outgoing' ? ['#f43f5e', '#fb7185'] : ['transparent', 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={[styles.typeGradient, type !== 'outgoing' && { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
@@ -404,7 +404,7 @@ export default function EditTransactionModal() {
             style={[styles.button, styles.saveButtonStyle]}
           >
             <LinearGradient
-              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : (type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#ef4444', '#f43f5e'])}
+              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : (type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185'])}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.gradientButton, Shadows.md]}

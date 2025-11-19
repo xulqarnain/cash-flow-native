@@ -96,7 +96,7 @@ export default function HistoryScreen() {
         <TouchableOpacity
           style={[
             styles.addButton,
-            { backgroundColor: isDark ? '#3b82f6' : '#3b82f6' }
+            { backgroundColor: isDark ? '#22d3ee' : '#22d3ee' }
           ]}
           onPress={() => router.push('/add-transaction')}
         >

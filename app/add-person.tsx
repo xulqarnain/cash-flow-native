@@ -91,7 +91,7 @@ export default function AddPersonModal() {
             {/* Icon Header */}
             <View style={styles.iconHeader}>
               <LinearGradient
-                colors={['#6366f1', '#8b5cf6']}
+                colors={['#06b6d4', '#8b5cf6']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.iconCircle}
@@ -169,7 +169,7 @@ export default function AddPersonModal() {
             style={[styles.button, styles.saveButtonStyle]}
           >
             <LinearGradient
-              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#6366f1', '#8b5cf6']}
+              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#06b6d4', '#8b5cf6']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.gradientButton, Shadows.md]}

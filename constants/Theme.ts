@@ -1,55 +1,55 @@
 export const Colors = {
   light: {
-    primary: '#6366f1', // indigo
-    primaryLight: '#818cf8',
-    primaryDark: '#4f46e5',
-    secondary: '#ec4899', // pink
+    primary: '#06b6d4', // cyan
+    primaryLight: '#22d3ee',
+    primaryDark: '#0891b2',
+    secondary: '#14b8a6', // teal
     success: '#10b981', // emerald
     successLight: '#34d399',
-    danger: '#ef4444', // red
-    dangerLight: '#f87171',
+    danger: '#f43f5e', // rose
+    dangerLight: '#fb7185',
     warning: '#f59e0b', // amber
-    info: '#3b82f6', // blue
+    info: '#06b6d4', // cyan
 
-    background: '#f8fafc',
-    backgroundSecondary: '#f1f5f9',
+    background: '#f0fdfa', // cyan tint
+    backgroundSecondary: '#ccfbf1',
     surface: '#ffffff',
     surfaceElevated: '#ffffff',
 
     text: '#0f172a',
-    textSecondary: '#64748b',
-    textTertiary: '#94a3b8',
+    textSecondary: '#0e7490',
+    textTertiary: '#67e8f9',
 
-    border: '#e2e8f0',
-    borderLight: '#f1f5f9',
+    border: '#a5f3fc',
+    borderLight: '#cffafe',
 
-    shadow: 'rgba(0, 0, 0, 0.1)',
+    shadow: 'rgba(6, 182, 212, 0.15)',
   },
   dark: {
-    primary: '#818cf8',
-    primaryLight: '#a5b4fc',
-    primaryDark: '#6366f1',
-    secondary: '#f472b6',
+    primary: '#22d3ee',
+    primaryLight: '#67e8f9',
+    primaryDark: '#06b6d4',
+    secondary: '#2dd4bf',
     success: '#34d399',
     successLight: '#6ee7b7',
-    danger: '#f87171',
-    dangerLight: '#fca5a5',
+    danger: '#fb7185',
+    dangerLight: '#fda4af',
     warning: '#fbbf24',
-    info: '#60a5fa',
+    info: '#22d3ee',
 
-    background: '#0f172a',
-    backgroundSecondary: '#1e293b',
-    surface: '#1e293b',
-    surfaceElevated: '#334155',
+    background: '#083344', // deep cyan
+    backgroundSecondary: '#0e7490',
+    surface: '#164e63',
+    surfaceElevated: '#155e75',
 
-    text: '#f1f5f9',
-    textSecondary: '#cbd5e1',
-    textTertiary: '#94a3b8',
+    text: '#ecfeff',
+    textSecondary: '#a5f3fc',
+    textTertiary: '#67e8f9',
 
-    border: '#334155',
-    borderLight: '#475569',
+    border: '#155e75',
+    borderLight: '#0e7490',
 
-    shadow: 'rgba(0, 0, 0, 0.5)',
+    shadow: 'rgba(34, 211, 238, 0.3)',
   },
 };
 
@@ -132,12 +132,12 @@ export const Shadows = {
 };
 
 export const Gradients = {
-  primary: ['#6366f1', '#8b5cf6', '#d946ef'],
-  success: ['#10b981', '#14b8a6', '#06b6d4'],
-  danger: ['#ef4444', '#f43f5e', '#ec4899'],
-  ocean: ['#0ea5e9', '#3b82f6', '#6366f1'],
-  sunset: ['#f59e0b', '#f97316', '#ef4444'],
-  aurora: ['#8b5cf6', '#d946ef', '#ec4899'],
+  primary: ['#06b6d4', '#22d3ee', '#67e8f9'], // cyan gradient
+  success: ['#10b981', '#14b8a6', '#22d3ee'], // emerald to cyan
+  danger: ['#f43f5e', '#fb7185', '#fda4af'], // smooth rose
+  ocean: ['#0891b2', '#06b6d4', '#22d3ee'], // deep to light cyan
+  sunset: ['#f59e0b', '#fb923c', '#fca5a5'], // warm gradient
+  aurora: ['#14b8a6', '#22d3ee', '#67e8f9'], // teal to cyan
 };
 
 export const Animation = {
