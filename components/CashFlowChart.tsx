@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withDelay,
+  Easing,
+  withTiming,
+} from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 import type { ChartDataPoint } from '@/database/transactionsService';
 
 interface CashFlowChartProps {
@@ -10,26 +20,48 @@ interface CashFlowChartProps {
 export function CashFlowChart({ data }: CashFlowChartProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   const screenWidth = Dimensions.get('window').width;
+
+  const scale = useSharedValue(0.95);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      300,
+      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
+    );
+    scale.value = withDelay(
+      300,
+      withSpring(1, { damping: 15, stiffness: 150 })
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
 
   if (data.length === 0) {
     return (
-      <View style={[
+      <Animated.View style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
-          borderColor: isDark ? '#374151' : '#e5e7eb',
-        }
+          backgroundColor: theme.surface,
+        },
+        Shadows.md,
+        animatedStyle,
       ]}>
-        <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
+        <Text style={[styles.title, { color: theme.text }]}>
           Cash Flow (Last 7 Days)
         </Text>
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+          <Text style={{ fontSize: 32, marginBottom: Spacing.sm }}>📊</Text>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
             No transaction data available
           </Text>
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
@@ -51,15 +83,16 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   };
 
   return (
-    <View style={[
+    <Animated.View style={[
       styles.container,
       {
-        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-        borderColor: isDark ? '#374151' : '#e5e7eb',
-      }
+        backgroundColor: theme.surface,
+      },
+      Shadows.md,
+      animatedStyle,
     ]}>
-      <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-        Cash Flow (Last 7 Days)
+      <Text style={[styles.title, { color: theme.text }]}>
+        Cash Flow Trend
       </Text>
 
       <LineChart
@@ -67,30 +100,31 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
         width={screenWidth - 64}
         height={220}
         chartConfig={{
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
-          backgroundGradientFrom: isDark ? '#1f2937' : '#ffffff',
-          backgroundGradientTo: isDark ? '#1f2937' : '#ffffff',
+          backgroundColor: theme.surface,
+          backgroundGradientFrom: theme.surface,
+          backgroundGradientTo: theme.surface,
           decimalPlaces: 0,
-          color: (opacity = 1) => isDark ? `rgba(156, 163, 175, ${opacity})` : `rgba(107, 114, 128, ${opacity})`,
-          labelColor: (opacity = 1) => isDark ? `rgba(156, 163, 175, ${opacity})` : `rgba(107, 114, 128, ${opacity})`,
+          color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
+          labelColor: (opacity = 1) => isDark ? `rgba(203, 213, 225, ${opacity})` : `rgba(71, 85, 105, ${opacity})`,
           style: {
-            borderRadius: 16,
+            borderRadius: BorderRadius.lg,
           },
           propsForDots: {
-            r: '4',
-            strokeWidth: '2',
-            stroke: '#3b82f6',
+            r: '5',
+            strokeWidth: '3',
+            stroke: '#6366f1',
+            fill: '#ffffff',
           },
           propsForBackgroundLines: {
             strokeDasharray: '',
-            stroke: isDark ? '#374151' : '#e5e7eb',
+            stroke: theme.border,
             strokeWidth: 1,
           },
         }}
         bezier
         style={styles.chart}
         withInnerLines={true}
-        withOuterLines={true}
+        withOuterLines={false}
         withVerticalLines={false}
         withHorizontalLines={true}
         fromZero={false}
@@ -99,65 +133,61 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
-          <Text style={[styles.legendText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-            Money In: ${data.reduce((sum, d) => sum + d.incoming, 0).toFixed(0)}
+          <Text style={[styles.legendText, { color: theme.textSecondary }]}>
+            In: ${data.reduce((sum, d) => sum + d.incoming, 0).toFixed(0)}
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#ef4444' }]} />
-          <Text style={[styles.legendText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-            Money Out: ${data.reduce((sum, d) => sum + d.outgoing, 0).toFixed(0)}
+          <Text style={[styles.legendText, { color: theme.textSecondary }]}>
+            Out: ${data.reduce((sum, d) => sum + d.outgoing, 0).toFixed(0)}
           </Text>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.base,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: Typography.sizes.lg,
+    fontWeight: Typography.weights.bold,
+    marginBottom: Spacing.base,
   },
   chart: {
-    marginVertical: 8,
-    borderRadius: 16,
+    marginVertical: Spacing.sm,
+    borderRadius: BorderRadius.lg,
   },
   emptyState: {
-    paddingVertical: 48,
+    paddingVertical: Spacing['3xl'],
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.medium,
   },
   legend: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 12,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: Spacing.sm,
   },
   legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   legendText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: Typography.sizes.xs,
+    fontWeight: Typography.weights.semibold,
   },
 });

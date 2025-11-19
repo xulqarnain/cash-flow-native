@@ -1,21 +1,22 @@
 import { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, RefreshControl } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { View, ScrollView, StyleSheet, Text, RefreshControl, Platform } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { GlassCard } from '@/components/GlassCard';
 import { FlowCard } from '@/components/FlowCard';
 import { PersonCard } from '@/components/PersonCard';
 import { CashFlowChart } from '@/components/CashFlowChart';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { initDatabase } from '@/database/init';
 import { getDashboardStats, getChartData, type ChartDataPoint } from '@/database/transactionsService';
 import { getPeopleWithBalances } from '@/database/peopleService';
 import type { PersonWithBalance, DashboardStats } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, Spacing, Typography } from '@/constants/Theme';
 
 export default function DashboardScreen() {
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
@@ -59,17 +60,21 @@ export default function DashboardScreen() {
   const balanceVariant = stats.totalBalance > 0 ? 'success' : stats.totalBalance < 0 ? 'danger' : 'primary';
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Cash Flow Dashboard
+          <Text style={[styles.greeting, { color: theme.textSecondary }]}>
+            Welcome back
+          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>
+            Cash Flow
           </Text>
         </View>
 
@@ -96,31 +101,21 @@ export default function DashboardScreen() {
         </View>
 
         {/* People List */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
-              People ({people.length})
-            </Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => router.push('/add-person')}
-            >
-              <Ionicons name="add-circle" size={28} color="#3b82f6" />
-            </TouchableOpacity>
-          </View>
+        <View style={[styles.section, { paddingBottom: Platform.OS === 'ios' ? 120 : 108 }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>
+            People ({people.length})
+          </Text>
 
           {people.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons
-                name="people-outline"
-                size={64}
-                color={isDark ? '#4b5563' : '#d1d5db'}
-              />
-              <Text style={[styles.emptyText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+              <View style={[styles.emptyIcon, { backgroundColor: theme.surfaceElevated }]}>
+                <Text style={{ fontSize: 48 }}>💰</Text>
+              </View>
+              <Text style={[styles.emptyText, { color: theme.text }]}>
                 No people added yet
               </Text>
-              <Text style={[styles.emptySubtext, { color: isDark ? '#6b7280' : '#9ca3af' }]}>
-                Tap the + button to add someone
+              <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+                Tap the + button to start tracking
               </Text>
             </View>
           ) : (
@@ -130,6 +125,9 @@ export default function DashboardScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton />
     </View>
   );
 }
@@ -139,50 +137,56 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: Spacing.base,
   },
   header: {
-    marginBottom: 20,
-    paddingTop: 8,
+    marginBottom: Spacing.xl,
+    paddingTop: Spacing.base,
+  },
+  greeting: {
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.medium,
+    marginBottom: Spacing.xs,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: Typography.sizes['4xl'],
+    fontWeight: Typography.weights.extrabold,
+    letterSpacing: -0.5,
   },
   section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.xl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  addButton: {
-    padding: 4,
+    fontSize: Typography.sizes.xl,
+    fontWeight: Typography.weights.bold,
+    marginBottom: Spacing.base,
   },
   flowContainer: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   flowSpacer: {
-    width: 12,
+    width: Spacing.md,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 48,
+    paddingVertical: Spacing['3xl'],
+  },
+  emptyIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.base,
   },
   emptyText: {
-    fontSize: 16,
-    marginTop: 16,
-    fontWeight: '500',
+    fontSize: Typography.sizes.lg,
+    marginTop: Spacing.base,
+    fontWeight: Typography.weights.semibold,
   },
   emptySubtext: {
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: Typography.sizes.sm,
+    marginTop: Spacing.sm,
   },
 });
