@@ -18,7 +18,7 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     CREATE TABLE IF NOT EXISTS people (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT,
+      phone TEXT,
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 

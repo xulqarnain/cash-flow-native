@@ -1,12 +1,12 @@
 import { getDatabase } from './init';
 import type { Person, PersonWithBalance } from '@/types/database';
 
-export async function createPerson(name: string, email?: string): Promise<number> {
+export async function createPerson(name: string, phone?: string): Promise<number> {
   const db = await getDatabase();
   const result = await db.runAsync(
-    'INSERT INTO people (name, email) VALUES (?, ?)',
+    'INSERT INTO people (name, phone) VALUES (?, ?)',
     name,
-    email || null
+    phone || null
   );
   return result.lastInsertRowId;
 }
@@ -64,12 +64,12 @@ export async function getPersonWithBalance(id: number): Promise<PersonWithBalanc
   return result || null;
 }
 
-export async function updatePerson(id: number, name: string, email?: string): Promise<void> {
+export async function updatePerson(id: number, name: string, phone?: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    'UPDATE people SET name = ?, email = ? WHERE id = ?',
+    'UPDATE people SET name = ?, phone = ? WHERE id = ?',
     name,
-    email || null,
+    phone || null,
     id
   );
 }
@@ -84,7 +84,7 @@ export async function searchPeople(query: string): Promise<Person[]> {
   const db = await getDatabase();
   const searchPattern = `%${query}%`;
   const result = await db.getAllAsync<Person>(
-    'SELECT * FROM people WHERE name LIKE ? OR email LIKE ? ORDER BY name ASC',
+    'SELECT * FROM people WHERE name LIKE ? OR phone LIKE ? ORDER BY name ASC',
     searchPattern,
     searchPattern
   );

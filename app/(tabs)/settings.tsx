@@ -25,9 +25,9 @@ export default function SettingsScreen() {
 
       // People CSV
       csvContent += '=== PEOPLE ===\n';
-      csvContent += 'ID,Name,Email,Created At\n';
+      csvContent += 'ID,Name,Phone,Created At\n';
       people.forEach(person => {
-        csvContent += `${person.id},"${person.name}","${person.email || ''}","${person.createdAt}"\n`;
+        csvContent += `${person.id},"${person.name}","${person.phone || ''}","${person.createdAt}"\n`;
       });
 
       csvContent += '\n=== TRANSACTIONS ===\n';
@@ -98,8 +98,8 @@ export default function SettingsScreen() {
           const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
           if (parts && parts.length >= 3) {
             const name = parts[1].replace(/"/g, '');
-            const email = parts[2].replace(/"/g, '') || undefined;
-            await createPerson(name, email);
+            const phone = parts[2].replace(/"/g, '') || undefined;
+            await createPerson(name, phone);
             importedPeople++;
           }
         } else if (section === 'transactions') {

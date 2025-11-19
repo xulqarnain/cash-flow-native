@@ -11,7 +11,7 @@ export default function AddPersonModal() {
   const isDark = colorScheme === 'dark';
 
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -22,7 +22,7 @@ export default function AddPersonModal() {
 
     setIsSubmitting(true);
     try {
-      await createPerson(name.trim(), email.trim() || undefined);
+      await createPerson(name.trim(), phone.trim() || undefined);
       router.back();
     } catch (error) {
       console.error('Error creating person:', error);
@@ -83,7 +83,7 @@ export default function AddPersonModal() {
 
         <View style={styles.formGroup}>
           <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Email (Optional)
+            Phone (Optional)
           </Text>
           <TextInput
             style={[
@@ -94,12 +94,11 @@ export default function AddPersonModal() {
                 color: isDark ? '#f9fafb' : '#111827',
               }
             ]}
-            placeholder="Enter email"
+            placeholder="Enter phone number"
             placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
           />
         </View>
       </View>

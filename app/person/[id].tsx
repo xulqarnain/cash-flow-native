@@ -113,9 +113,9 @@ export default function PersonDetailScreen() {
             {person.name}
           </Text>
 
-          {person.email && (
-            <Text style={[styles.email, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-              {person.email}
+          {person.phone && (
+            <Text style={[styles.phone, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+              {person.phone}
             </Text>
           )}
 
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
-  email: {
+  phone: {
     fontSize: 16,
     marginBottom: 20,
   },

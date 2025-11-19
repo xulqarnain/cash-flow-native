@@ -39,12 +39,12 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
         ]}>
           {person.name}
         </Text>
-        {person.email && (
+        {person.phone && (
           <Text style={[
-            styles.email,
+            styles.phone,
             { color: isDark ? '#9ca3af' : '#6b7280' }
           ]}>
-            {person.email}
+            {person.phone}
           </Text>
         )}
       </View>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  email: {
+  phone: {
     fontSize: 14,
   },
   footer: {
