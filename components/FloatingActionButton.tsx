@@ -191,7 +191,7 @@ function ActionButton({ action, index, isDark }: ActionButtonProps) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 88,
+    bottom: Platform.OS === 'ios' ? 112 : 108, // Footer height + 20px gap
     right: 20,
     alignItems: 'flex-end',
     zIndex: 10000,
