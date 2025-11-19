@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, RefreshControl } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -13,15 +13,14 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
 import { initDatabase } from '@/database/init';
-import { getPeopleWithBalances } from '@/database/peopleService';
-import type { PersonWithBalance } from '@/types/database';
+import { getAllTransactions } from '@/database/transactionsService';
+import type { TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(View);
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function PaymentsScreen() {
   const colorScheme = useColorScheme();
@@ -30,14 +29,14 @@ export default function PaymentsScreen() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  const [people, setPeople] = useState<PersonWithBalance[]>([]);
+  const [transactions, setTransactions] = useState<TransactionWithPerson[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
       await initDatabase();
-      const peopleWithBalances = await getPeopleWithBalances();
-      setPeople(peopleWithBalances);
+      const allTransactions = await getAllTransactions();
+      setTransactions(allTransactions);
     } catch (error) {
       console.error('Error loading payments data:', error);
     }
@@ -55,13 +54,12 @@ export default function PaymentsScreen() {
     }, [])
   );
 
-  // Separate people into two categories
-  const peopleWhoPay = people.filter(p => p.balance > 0); // They owe you
-  const peopleToReceiveFrom = peopleWhoPay;
-  const peopleToPay = people.filter(p => p.balance < 0); // You owe them
+  // Separate transactions into receive (incoming) and pay (outgoing)
+  const transactionsToReceive = transactions.filter(t => t.type === 'incoming');
+  const transactionsToPay = transactions.filter(t => t.type === 'outgoing');
 
-  const totalToReceive = peopleToReceiveFrom.reduce((sum, p) => sum + p.balance, 0);
-  const totalToPay = Math.abs(peopleToPay.reduce((sum, p) => sum + p.balance, 0));
+  const totalToReceive = transactionsToReceive.reduce((sum, t) => sum + t.amount, 0);
+  const totalToPay = transactionsToPay.reduce((sum, t) => sum + t.amount, 0);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -79,28 +77,56 @@ export default function PaymentsScreen() {
           </Text>
         </View>
 
-        {/* Need to Receive Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        {/* Summary Cards */}
+        <View style={styles.summaryContainer}>
+          <View style={[styles.summaryCard, { flex: 1, marginRight: Spacing.sm }]}>
             <LinearGradient
               colors={['#10b981', '#14b8a6']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.sectionIcon}
+              style={[styles.summaryGradient, Shadows.md]}
             >
-              <Ionicons name="arrow-down" size={20} color="#ffffff" />
+              <Ionicons name="arrow-down" size={24} color="#ffffff" />
+              <Text style={styles.summaryLabel}>{t('need_to_receive')}</Text>
+              <Text style={styles.summaryAmount}>${totalToReceive.toFixed(2)}</Text>
+              <Text style={styles.summaryCount}>{transactionsToReceive.length} txns</Text>
             </LinearGradient>
-            <View style={{ flex: 1 }}>
+          </View>
+
+          <View style={[styles.summaryCard, { flex: 1, marginLeft: Spacing.sm }]}>
+            <LinearGradient
+              colors={['#ef4444', '#f43f5e']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.summaryGradient, Shadows.md]}
+            >
+              <Ionicons name="arrow-up" size={24} color="#ffffff" />
+              <Text style={styles.summaryLabel}>{t('need_to_pay')}</Text>
+              <Text style={styles.summaryAmount}>${totalToPay.toFixed(2)}</Text>
+              <Text style={styles.summaryCount}>{transactionsToPay.length} txns</Text>
+            </LinearGradient>
+          </View>
+        </View>
+
+        {/* Need to Receive Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <LinearGradient
+                colors={['#10b981', '#14b8a6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.sectionIcon}
+              >
+                <Ionicons name="arrow-down" size={16} color="#ffffff" />
+              </LinearGradient>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 {t('need_to_receive')}
-              </Text>
-              <Text style={[styles.sectionTotal, { color: theme.success }]}>
-                ${totalToReceive.toFixed(2)}
               </Text>
             </View>
           </View>
 
-          {peopleToReceiveFrom.length === 0 ? (
+          {transactionsToReceive.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }, Shadows.base]}>
               <Text style={{ fontSize: 32, marginBottom: Spacing.sm }}>✅</Text>
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
@@ -108,15 +134,15 @@ export default function PaymentsScreen() {
               </Text>
             </View>
           ) : (
-            peopleToReceiveFrom.map((person, index) => (
-              <PaymentCard
-                key={person.id}
-                person={person}
+            transactionsToReceive.map((transaction, index) => (
+              <TransactionCard
+                key={transaction.id}
+                transaction={transaction}
                 type="receive"
                 index={index}
                 isDark={isDark}
                 theme={theme}
-                onPress={() => router.push(`/person/${person.id}`)}
+                onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
           )}
@@ -125,25 +151,22 @@ export default function PaymentsScreen() {
         {/* Need to Pay Section */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <View style={styles.sectionHeader}>
-            <LinearGradient
-              colors={['#ef4444', '#f43f5e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.sectionIcon}
-            >
-              <Ionicons name="arrow-up" size={20} color="#ffffff" />
-            </LinearGradient>
-            <View style={{ flex: 1 }}>
+            <View style={styles.sectionTitleRow}>
+              <LinearGradient
+                colors={['#ef4444', '#f43f5e']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.sectionIcon}
+              >
+                <Ionicons name="arrow-up" size={16} color="#ffffff" />
+              </LinearGradient>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 {t('need_to_pay')}
-              </Text>
-              <Text style={[styles.sectionTotal, { color: theme.danger }]}>
-                ${totalToPay.toFixed(2)}
               </Text>
             </View>
           </View>
 
-          {peopleToPay.length === 0 ? (
+          {transactionsToPay.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }, Shadows.base]}>
               <Text style={{ fontSize: 32, marginBottom: Spacing.sm }}>🎉</Text>
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
@@ -151,15 +174,15 @@ export default function PaymentsScreen() {
               </Text>
             </View>
           ) : (
-            peopleToPay.map((person, index) => (
-              <PaymentCard
-                key={person.id}
-                person={person}
+            transactionsToPay.map((transaction, index) => (
+              <TransactionCard
+                key={transaction.id}
+                transaction={transaction}
                 type="pay"
                 index={index}
                 isDark={isDark}
                 theme={theme}
-                onPress={() => router.push(`/person/${person.id}`)}
+                onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
           )}
@@ -169,8 +192,8 @@ export default function PaymentsScreen() {
   );
 }
 
-interface PaymentCardProps {
-  person: PersonWithBalance;
+interface TransactionCardProps {
+  transaction: TransactionWithPerson;
   type: 'receive' | 'pay';
   index: number;
   isDark: boolean;
@@ -178,18 +201,18 @@ interface PaymentCardProps {
   onPress: () => void;
 }
 
-function PaymentCard({ person, type, index, isDark, theme, onPress }: PaymentCardProps) {
+function TransactionCard({ transaction, type, index, isDark, theme, onPress }: TransactionCardProps) {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
   React.useEffect(() => {
     opacity.value = withDelay(
-      index * 50,
+      index * 30,
       withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) })
     );
     translateY.value = withDelay(
-      index * 50,
+      index * 30,
       withSpring(0, { damping: 15 })
     );
   }, []);
@@ -211,56 +234,69 @@ function PaymentCard({ person, type, index, isDark, theme, onPress }: PaymentCar
     scale.value = withSpring(1);
   };
 
-  const amount = Math.abs(person.balance);
   const gradient = type === 'receive'
     ? ['#10b981', '#14b8a6']
     : ['#ef4444', '#f43f5e'];
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
     <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       style={[
-        styles.paymentCard,
+        styles.transactionCard,
         { backgroundColor: theme.surface },
         Shadows.base,
         animatedStyle,
       ]}
-      onTouchStart={handlePressIn}
-      onTouchEnd={() => {
-        handlePressOut();
-        onPress();
-      }}
     >
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.avatar}
-      >
-        <Ionicons name="person" size={24} color="#ffffff" />
-      </LinearGradient>
+      <View style={styles.cardLeft}>
+        <LinearGradient
+          colors={gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatar}
+        >
+          <Ionicons name="person" size={20} color="#ffffff" />
+        </LinearGradient>
 
-      <View style={styles.info}>
-        <Text style={[styles.name, { color: theme.text }]}>
-          {person.name}
-        </Text>
-        {person.phone && (
-          <Text style={[styles.phone, { color: theme.textTertiary }]}>
-            📞 {person.phone}
+        <View style={styles.cardInfo}>
+          <Text style={[styles.personName, { color: theme.text }]}>
+            {transaction.personName}
           </Text>
-        )}
+          <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={1}>
+            {transaction.description}
+          </Text>
+          <View style={styles.meta}>
+            <View style={styles.metaItem}>
+              <Ionicons name="calendar-outline" size={12} color={theme.textTertiary} />
+              <Text style={[styles.metaText, { color: theme.textTertiary }]}>
+                {formatDate(transaction.date)}
+              </Text>
+            </View>
+            {transaction.category && (
+              <View style={styles.metaItem}>
+                <Ionicons name="pricetag-outline" size={12} color={theme.textTertiary} />
+                <Text style={[styles.metaText, { color: theme.textTertiary }]}>
+                  {transaction.category}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
 
-      <View style={styles.amountContainer}>
-        <Text style={[
-          styles.amount,
-          { color: type === 'receive' ? theme.success : theme.danger }
-        ]}>
-          ${amount.toFixed(2)}
-        </Text>
-        <Text style={[styles.transactionCount, { color: theme.textTertiary }]}>
-          {person.transactionCount} {person.transactionCount === 1 ? 'txn' : 'txns'}
-        </Text>
-      </View>
+      <Text style={[
+        styles.amount,
+        { color: type === 'receive' ? theme.success : theme.danger }
+      ]}>
+        ${transaction.amount.toFixed(2)}
+      </Text>
     </AnimatedTouchable>
   );
 }
@@ -281,68 +317,107 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.extrabold,
     letterSpacing: -0.5,
   },
+  summaryContainer: {
+    flexDirection: 'row',
+    marginBottom: Spacing.xl,
+  },
+  summaryCard: {
+  },
+  summaryGradient: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.base,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: Typography.sizes.xs,
+    color: '#ffffff',
+    opacity: 0.9,
+    marginTop: Spacing.xs,
+    fontWeight: Typography.weights.semibold,
+  },
+  summaryAmount: {
+    fontSize: Typography.sizes['2xl'],
+    fontWeight: Typography.weights.extrabold,
+    color: '#ffffff',
+    marginTop: Spacing.xs,
+  },
+  summaryCount: {
+    fontSize: Typography.sizes.xs,
+    color: '#ffffff',
+    opacity: 0.8,
+    marginTop: Spacing.xs,
+  },
   section: {
     marginBottom: Spacing.xl,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: Spacing.base,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   sectionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.base,
+    width: 28,
+    height: 28,
+    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
+    marginRight: Spacing.sm,
   },
   sectionTitle: {
     fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.semibold,
-    marginBottom: Spacing.xs,
+    fontWeight: Typography.weights.bold,
   },
-  sectionTotal: {
-    fontSize: Typography.sizes['2xl'],
-    fontWeight: Typography.weights.extrabold,
-  },
-  paymentCard: {
+  transactionCard: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.base,
     marginBottom: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatar: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.base,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
-  info: {
+  cardInfo: {
     flex: 1,
   },
-  name: {
+  personName: {
     fontSize: Typography.sizes.base,
     fontWeight: Typography.weights.semibold,
     marginBottom: Spacing.xs,
   },
-  phone: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.medium,
+  description: {
+    fontSize: Typography.sizes.sm,
+    marginBottom: Spacing.xs,
   },
-  amountContainer: {
-    alignItems: 'flex-end',
+  meta: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: Typography.sizes.xs,
   },
   amount: {
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.bold,
-    marginBottom: Spacing.xs,
-  },
-  transactionCount: {
-    fontSize: Typography.sizes.xs,
+    marginLeft: Spacing.md,
   },
   emptyCard: {
     borderRadius: BorderRadius.lg,
