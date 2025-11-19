@@ -172,3 +172,65 @@ export async function searchTransactions(query: string): Promise<TransactionWith
   `, searchPattern, searchPattern, searchPattern);
   return result;
 }
+
+export interface ChartDataPoint {
+  date: string;
+  incoming: number;
+  outgoing: number;
+  balance: number;
+}
+
+export async function getChartData(days: number = 7): Promise<ChartDataPoint[]> {
+  const db = await getDatabase();
+
+  // Get data for the last N days
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (days - 1));
+
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
+
+  const result = await db.getAllAsync<{
+    date: string;
+    incoming: number;
+    outgoing: number;
+  }>(`
+    SELECT
+      date,
+      COALESCE(SUM(CASE WHEN type = 'incoming' THEN amount ELSE 0 END), 0) as incoming,
+      COALESCE(SUM(CASE WHEN type = 'outgoing' THEN amount ELSE 0 END), 0) as outgoing
+    FROM transactions
+    WHERE date BETWEEN ? AND ?
+    GROUP BY date
+    ORDER BY date ASC
+  `, startDateStr, endDateStr);
+
+  // Create a map of existing data
+  const dataMap = new Map<string, { incoming: number; outgoing: number }>();
+  result.forEach(row => {
+    dataMap.set(row.date, { incoming: row.incoming, outgoing: row.outgoing });
+  });
+
+  // Fill in missing dates with zeros
+  const chartData: ChartDataPoint[] = [];
+  let runningBalance = 0;
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    const data = dataMap.get(dateStr) || { incoming: 0, outgoing: 0 };
+    runningBalance += data.incoming - data.outgoing;
+
+    chartData.push({
+      date: dateStr,
+      incoming: data.incoming,
+      outgoing: data.outgoing,
+      balance: runningBalance,
+    });
+  }
+
+  return chartData;
+}

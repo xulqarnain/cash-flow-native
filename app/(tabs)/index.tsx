@@ -5,8 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { GlassCard } from '@/components/GlassCard';
 import { FlowCard } from '@/components/FlowCard';
 import { PersonCard } from '@/components/PersonCard';
+import { CashFlowChart } from '@/components/CashFlowChart';
 import { initDatabase } from '@/database/init';
-import { getDashboardStats } from '@/database/transactionsService';
+import { getDashboardStats, getChartData, type ChartDataPoint } from '@/database/transactionsService';
 import { getPeopleWithBalances } from '@/database/peopleService';
 import type { PersonWithBalance, DashboardStats } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -24,17 +25,20 @@ export default function DashboardScreen() {
     peopleCount: 0,
   });
   const [people, setPeople] = useState<PersonWithBalance[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
       await initDatabase();
-      const [dashboardStats, peopleWithBalances] = await Promise.all([
+      const [dashboardStats, peopleWithBalances, cashFlowData] = await Promise.all([
         getDashboardStats(),
         getPeopleWithBalances(),
+        getChartData(7),
       ]);
       setStats(dashboardStats);
       setPeople(peopleWithBalances);
+      setChartData(cashFlowData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
@@ -84,6 +88,11 @@ export default function DashboardScreen() {
           <FlowCard type="incoming" amount={stats.totalIncoming} />
           <View style={styles.flowSpacer} />
           <FlowCard type="outgoing" amount={stats.totalOutgoing} />
+        </View>
+
+        {/* Cash Flow Chart */}
+        <View style={styles.section}>
+          <CashFlowChart data={chartData} />
         </View>
 
         {/* People List */}
