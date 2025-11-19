@@ -160,6 +160,7 @@ export default function PersonDetailScreen() {
           transactions={transactions}
           showPersonName={false}
           emptyMessage="No transactions yet. Add one to get started!"
+          onTransactionPress={(txn) => router.push(`/transaction/${txn.id}`)}
         />
       </View>
     </SafeAreaView>

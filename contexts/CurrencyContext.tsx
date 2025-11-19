@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type Currency = 'Rs' | '$' | '€' | '£' | '¥';
+export type Currency = 'Rs' | '$' | '€' | '£' | '¥' | 'SR';
 
 export interface CurrencyOption {
   code: Currency;
@@ -11,6 +11,7 @@ export interface CurrencyOption {
 
 export const currencies: CurrencyOption[] = [
   { code: 'Rs', name: 'Pakistani Rupee', symbol: 'Rs' },
+  { code: 'SR', name: 'Saudi Riyal', symbol: 'SR' },
   { code: '$', name: 'US Dollar', symbol: '$' },
   { code: '€', name: 'Euro', symbol: '€' },
   { code: '£', name: 'British Pound', symbol: '£' },
@@ -35,7 +36,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const loadCurrency = async () => {
     try {
       const saved = await AsyncStorage.getItem('app_currency');
-      if (saved && ['Rs', '$', '€', '£', '¥'].includes(saved)) {
+      if (saved && ['Rs', 'SR', '$', '€', '£', '¥'].includes(saved)) {
         setCurrencyState(saved as Currency);
       }
     } catch (error) {
@@ -60,7 +61,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       return `${currency}${formattedNumber}`;
     }
 
-    // For Rs and others that go after
+    // For Rs, SR and others that go after
     return `${currency} ${formattedNumber}`;
   };
 

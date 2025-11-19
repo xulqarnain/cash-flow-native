@@ -114,6 +114,7 @@ export default function HistoryScreen() {
             ? 'No transactions found'
             : 'No transactions yet. Add one to get started!'
         }
+        onTransactionPress={(txn) => router.push(`/transaction/${txn.id}`)}
       />
     </SafeAreaView>
   );

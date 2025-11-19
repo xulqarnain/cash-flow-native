@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, RefreshControl, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, ScrollView, StyleSheet, Text, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,7 +16,8 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { initDatabase } from '@/database/init';
 import { getAllTransactions } from '@/database/transactionsService';
-import type { TransactionWithPerson } from '@/types/database';
+import { getAllPeople } from '@/database/peopleService';
+import type { TransactionWithPerson, Person } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -32,13 +34,25 @@ export default function PaymentsScreen() {
   const router = useRouter();
 
   const [transactions, setTransactions] = useState<TransactionWithPerson[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filter states
+  const [selectedPersonId, setSelectedPersonId] = useState<number>(0);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const loadData = async () => {
     try {
       await initDatabase();
-      const allTransactions = await getAllTransactions();
+      const [allTransactions, allPeople] = await Promise.all([
+        getAllTransactions(),
+        getAllPeople(),
+      ]);
       setTransactions(allTransactions);
+      setPeople(allPeople);
     } catch (error) {
       console.error('Error loading payments data:', error);
     }
@@ -56,12 +70,49 @@ export default function PaymentsScreen() {
     }, [])
   );
 
+  // Filter transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = transactions;
+
+    // Filter by person
+    if (selectedPersonId > 0) {
+      filtered = filtered.filter(t => t.personId === selectedPersonId);
+    }
+
+    // Filter by category
+    if (selectedCategory.trim()) {
+      filtered = filtered.filter(t =>
+        t.category?.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
+    }
+
+    // Filter by date range
+    if (startDate) {
+      filtered = filtered.filter(t => t.date >= startDate);
+    }
+    if (endDate) {
+      filtered = filtered.filter(t => t.date <= endDate);
+    }
+
+    return filtered;
+  }, [transactions, selectedPersonId, selectedCategory, startDate, endDate]);
+
   // Separate transactions into receive (incoming) and pay (outgoing)
-  const transactionsToReceive = transactions.filter(t => t.type === 'incoming');
-  const transactionsToPay = transactions.filter(t => t.type === 'outgoing');
+  const transactionsToReceive = filteredTransactions.filter(t => t.type === 'incoming');
+  const transactionsToPay = filteredTransactions.filter(t => t.type === 'outgoing');
 
   const totalToReceive = transactionsToReceive.reduce((sum, t) => sum + t.amount, 0);
   const totalToPay = transactionsToPay.reduce((sum, t) => sum + t.amount, 0);
+
+  const clearFilters = () => {
+    setSelectedPersonId(0);
+    setSelectedCategory('');
+    setStartDate('');
+    setEndDate('');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const hasActiveFilters = selectedPersonId > 0 || selectedCategory.trim() || startDate || endDate;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -74,10 +125,114 @@ export default function PaymentsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>
-            {t('payments')}
-          </Text>
+          <View style={styles.headerRow}>
+            <Text style={[styles.title, { color: theme.text }]}>
+              {t('payments')}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowFilters(!showFilters);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              style={[
+                styles.filterButton,
+                { backgroundColor: hasActiveFilters ? '#6366f1' : theme.surface },
+                Shadows.base,
+              ]}
+            >
+              <Ionicons
+                name="funnel"
+                size={20}
+                color={hasActiveFilters ? '#ffffff' : theme.text}
+              />
+              {hasActiveFilters && (
+                <View style={styles.filterBadge}>
+                  <View style={styles.filterDot} />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <View style={[styles.filtersPanel, { backgroundColor: theme.surface }, Shadows.md]}>
+            <View style={styles.filterRow}>
+              <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>
+                Person
+              </Text>
+              <View style={[styles.filterInput, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                <Ionicons name="person-outline" size={16} color={theme.textTertiary} />
+                <Picker
+                  selectedValue={selectedPersonId}
+                  onValueChange={(value) => setSelectedPersonId(value)}
+                  style={[styles.picker, { color: theme.text }]}
+                >
+                  <Picker.Item label="All People" value={0} />
+                  {people.map((person) => (
+                    <Picker.Item key={person.id} label={person.name} value={person.id} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.filterRow}>
+              <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>
+                Category
+              </Text>
+              <View style={[styles.filterInput, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                <Ionicons name="pricetag-outline" size={16} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.textInput, { color: theme.text }]}
+                  placeholder="Search category..."
+                  placeholderTextColor={theme.textTertiary}
+                  value={selectedCategory}
+                  onChangeText={setSelectedCategory}
+                />
+              </View>
+            </View>
+
+            <View style={styles.filterRow}>
+              <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>
+                Date Range
+              </Text>
+              <View style={styles.dateRangeRow}>
+                <View style={[styles.dateInput, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                  <Ionicons name="calendar-outline" size={16} color={theme.textTertiary} />
+                  <TextInput
+                    style={[styles.textInput, { color: theme.text }]}
+                    placeholder="From (YYYY-MM-DD)"
+                    placeholderTextColor={theme.textTertiary}
+                    value={startDate}
+                    onChangeText={setStartDate}
+                  />
+                </View>
+                <View style={[styles.dateInput, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                  <Ionicons name="calendar-outline" size={16} color={theme.textTertiary} />
+                  <TextInput
+                    style={[styles.textInput, { color: theme.text }]}
+                    placeholder="To (YYYY-MM-DD)"
+                    placeholderTextColor={theme.textTertiary}
+                    value={endDate}
+                    onChangeText={setEndDate}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {hasActiveFilters && (
+              <TouchableOpacity
+                onPress={clearFilters}
+                style={[styles.clearButton, { backgroundColor: theme.background, borderColor: '#ef4444' }, Shadows.sm]}
+              >
+                <Ionicons name="close-circle" size={18} color="#ef4444" />
+                <Text style={[styles.clearButtonText, { color: '#ef4444' }]}>
+                  Clear Filters
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
@@ -320,13 +475,97 @@ const styles = StyleSheet.create({
     padding: Spacing.base,
   },
   header: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
     paddingTop: Spacing.base,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: Typography.sizes['4xl'],
     fontWeight: Typography.weights.extrabold,
     letterSpacing: -0.5,
+  },
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+  filterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ffffff',
+  },
+  filtersPanel: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.base,
+    marginBottom: Spacing.md,
+  },
+  filterRow: {
+    marginBottom: Spacing.md,
+  },
+  filterLabel: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: Spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  filterInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.base,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: Typography.sizes.sm,
+    marginLeft: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  picker: {
+    flex: 1,
+    marginLeft: Spacing.xs,
+  },
+  dateRangeRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  dateInput: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.base,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  clearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.base,
+    borderWidth: 1,
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  clearButtonText: {
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.semibold,
   },
   summaryContainer: {
     flexDirection: 'row',
