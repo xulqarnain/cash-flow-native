@@ -13,17 +13,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { createTransaction } from '@/database/transactionsService';
 import { getAllPeople } from '@/database/peopleService';
 import type { Person } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function AddTransactionModal() {
   const router = useRouter();
   const { personId } = useLocalSearchParams<{ personId?: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
+  const { t } = useLanguage();
 
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState<number>(
@@ -36,9 +51,19 @@ export default function AddTransactionModal() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(30);
+
   useEffect(() => {
     loadPeople();
+    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
+    translateY.value = withSpring(0, { damping: 15 });
   }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const loadPeople = async () => {
     try {
@@ -66,6 +91,7 @@ export default function AddTransactionModal() {
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
     try {
       await createTransaction({
@@ -76,38 +102,41 @@ export default function AddTransactionModal() {
         category: category.trim() || undefined,
         date,
       });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (error) {
       console.error('Error creating transaction:', error);
       Alert.alert('Error', 'Failed to add transaction');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  };
+
   if (people.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-            <Text style={[styles.cancelText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-              Cancel
-            </Text>
+          <TouchableOpacity onPress={handleCancel} style={styles.iconButton}>
+            <Ionicons name="close" size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Add Transaction
+          <Text style={[styles.title, { color: theme.text }]}>
+            {t('add_transaction')}
           </Text>
-          <View style={styles.saveButton} />
+          <View style={{ width: 40 }} />
         </View>
         <View style={styles.emptyContainer}>
-          <Ionicons
-            name="people-outline"
-            size={64}
-            color={isDark ? '#4b5563' : '#d1d5db'}
-          />
-          <Text style={[styles.emptyText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+          <View style={[styles.emptyIcon, { backgroundColor: theme.surfaceElevated }]}>
+            <Text style={{ fontSize: 48 }}>👥</Text>
+          </View>
+          <Text style={[styles.emptyText, { color: theme.text }]}>
             No people added yet
           </Text>
-          <Text style={[styles.emptySubtext, { color: isDark ? '#6b7280' : '#9ca3af' }]}>
+          <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
             Add a person first to create transactions
           </Text>
         </View>
@@ -116,208 +145,260 @@ export default function AddTransactionModal() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
+        {/* Header */}
         <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-          <Text style={[styles.cancelText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-            Cancel
+          <TouchableOpacity onPress={handleCancel} style={styles.iconButton}>
+            <Ionicons name="close" size={28} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: theme.text }]}>
+            {t('add_transaction')}
           </Text>
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-          Add Transaction
-        </Text>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          style={styles.saveButton}
+          <View style={{ width: 40 }} />
+        </View>
+
+        {/* Form */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={[
-            styles.saveText,
-            { color: isSubmitting ? '#9ca3af' : '#3b82f6' }
-          ]}>
-            Save
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <Animated.View style={[styles.formContainer, animatedStyle]}>
+            {/* Icon Header */}
+            <View style={styles.iconHeader}>
+              <LinearGradient
+                colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#ef4444', '#f43f5e']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.iconCircle}
+              >
+                <Ionicons
+                  name={type === 'incoming' ? 'arrow-down' : 'arrow-up'}
+                  size={32}
+                  color="#ffffff"
+                />
+              </LinearGradient>
+            </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.form}>
-        {/* Person Picker */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Person *
-          </Text>
-          <View style={[
-            styles.pickerContainer,
-            {
-              backgroundColor: isDark ? '#1f2937' : '#ffffff',
-              borderColor: isDark ? '#374151' : '#e5e7eb',
-            }
-          ]}>
-            <Picker
-              selectedValue={selectedPersonId}
-              onValueChange={(value) => setSelectedPersonId(value)}
-              style={[styles.picker, { color: isDark ? '#f9fafb' : '#111827' }]}
-            >
-              {people.map((person) => (
-                <Picker.Item key={person.id} label={person.name} value={person.id} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        {/* Transaction Type */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Type *
-          </Text>
-          <View style={styles.typeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                type === 'incoming' && styles.typeButtonActive,
-                {
-                  backgroundColor: type === 'incoming'
-                    ? '#10b981'
-                    : isDark ? '#1f2937' : '#ffffff',
-                  borderColor: type === 'incoming'
-                    ? '#10b981'
-                    : isDark ? '#374151' : '#e5e7eb',
-                }
-              ]}
-              onPress={() => setType('incoming')}
-            >
-              <Ionicons
-                name="arrow-down-circle"
-                size={24}
-                color={type === 'incoming' ? '#ffffff' : isDark ? '#9ca3af' : '#6b7280'}
-              />
-              <Text style={[
-                styles.typeText,
-                { color: type === 'incoming' ? '#ffffff' : isDark ? '#9ca3af' : '#6b7280' }
-              ]}>
-                Money In
+            {/* Transaction Type */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('type')} *
               </Text>
-            </TouchableOpacity>
+              <View style={styles.typeContainer}>
+                <TouchableOpacity
+                  style={[styles.typeButton, type === 'incoming' && styles.typeButtonActive]}
+                  onPress={() => {
+                    setType('incoming');
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <LinearGradient
+                    colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['transparent', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.typeGradient, type !== 'incoming' && { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                  >
+                    <Ionicons
+                      name="arrow-down"
+                      size={20}
+                      color={type === 'incoming' ? '#ffffff' : theme.textTertiary}
+                    />
+                    <Text style={[
+                      styles.typeText,
+                      { color: type === 'incoming' ? '#ffffff' : theme.textSecondary }
+                    ]}>
+                      {t('incoming')}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                type === 'outgoing' && styles.typeButtonActive,
-                {
-                  backgroundColor: type === 'outgoing'
-                    ? '#ef4444'
-                    : isDark ? '#1f2937' : '#ffffff',
-                  borderColor: type === 'outgoing'
-                    ? '#ef4444'
-                    : isDark ? '#374151' : '#e5e7eb',
-                }
-              ]}
-              onPress={() => setType('outgoing')}
-            >
-              <Ionicons
-                name="arrow-up-circle"
-                size={24}
-                color={type === 'outgoing' ? '#ffffff' : isDark ? '#9ca3af' : '#6b7280'}
-              />
-              <Text style={[
-                styles.typeText,
-                { color: type === 'outgoing' ? '#ffffff' : isDark ? '#9ca3af' : '#6b7280' }
-              ]}>
-                Money Out
+                <TouchableOpacity
+                  style={[styles.typeButton, type === 'outgoing' && styles.typeButtonActive]}
+                  onPress={() => {
+                    setType('outgoing');
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <LinearGradient
+                    colors={type === 'outgoing' ? ['#ef4444', '#f43f5e'] : ['transparent', 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.typeGradient, type !== 'outgoing' && { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                  >
+                    <Ionicons
+                      name="arrow-up"
+                      size={20}
+                      color={type === 'outgoing' ? '#ffffff' : theme.textTertiary}
+                    />
+                    <Text style={[
+                      styles.typeText,
+                      { color: type === 'outgoing' ? '#ffffff' : theme.textSecondary }
+                    ]}>
+                      {t('outgoing')}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Person Picker */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                Person *
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="person-outline" size={20} color={theme.textTertiary} />
+                <Picker
+                  selectedValue={selectedPersonId}
+                  onValueChange={(value) => setSelectedPersonId(value)}
+                  style={[styles.picker, { color: theme.text }]}
+                >
+                  {people.map((person) => (
+                    <Picker.Item key={person.id} label={person.name} value={person.id} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
 
-        {/* Amount */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Amount *
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
-            ]}
-            placeholder="0.00"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="decimal-pad"
-          />
-        </View>
+            {/* Amount */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('amount')} *
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="cash-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="0.00"
+                  placeholderTextColor={theme.textTertiary}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+            </View>
 
-        {/* Description */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Description *
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
-            ]}
-            placeholder="Enter description"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={description}
-            onChangeText={setDescription}
-          />
-        </View>
+            {/* Description */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('description')} *
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="document-text-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder={t('enter_description')}
+                  placeholderTextColor={theme.textTertiary}
+                  value={description}
+                  onChangeText={setDescription}
+                />
+              </View>
+            </View>
 
-        {/* Category */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Category (Optional)
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
-            ]}
-            placeholder="e.g., Loan, Payment, Gift"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={category}
-            onChangeText={setCategory}
-          />
-        </View>
+            {/* Category */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('category')} ({t('optional')})
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="pricetag-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="e.g., Loan, Payment, Gift"
+                  placeholderTextColor={theme.textTertiary}
+                  value={category}
+                  onChangeText={setCategory}
+                />
+              </View>
+            </View>
 
-        {/* Date */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Date *
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
-            ]}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={date}
-            onChangeText={setDate}
-          />
+            {/* Date */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('date')} *
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="calendar-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={theme.textTertiary}
+                  value={date}
+                  onChangeText={setDate}
+                />
+              </View>
+            </View>
+          </Animated.View>
+        </ScrollView>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <AnimatedTouchable
+            onPress={handleCancel}
+            style={[styles.button, styles.cancelButtonStyle]}
+          >
+            <View style={[
+              styles.cancelButton,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+              Shadows.base,
+            ]}>
+              <Text style={[styles.buttonText, { color: theme.text }]}>
+                {t('cancel')}
+              </Text>
+            </View>
+          </AnimatedTouchable>
+
+          <AnimatedTouchable
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            style={[styles.button, styles.saveButtonStyle]}
+          >
+            <LinearGradient
+              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : (type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#ef4444', '#f43f5e'])}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.gradientButton, Shadows.md]}
+            >
+              {isSubmitting ? (
+                <Text style={[styles.buttonText, { color: '#ffffff' }]}>
+                  Saving...
+                </Text>
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={20} color="#ffffff" />
+                  <Text style={[styles.buttonText, { color: '#ffffff', marginLeft: Spacing.sm }]}>
+                    {t('save')}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </AnimatedTouchable>
         </View>
-      </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -334,87 +415,142 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
   },
-  cancelButton: {
-    padding: 8,
-  },
-  cancelText: {
-    fontSize: 16,
+  iconButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  saveButton: {
-    padding: 8,
-  },
-  saveText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: Typography.sizes['2xl'],
+    fontWeight: Typography.weights.bold,
   },
   scrollView: {
     flex: 1,
   },
-  form: {
-    padding: 16,
+  scrollContent: {
+    padding: Spacing.xl,
+  },
+  formContainer: {
+  },
+  iconHeader: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   formGroup: {
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: Spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.base,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.xs,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
+    flex: 1,
+    fontSize: Typography.sizes.base,
+    marginLeft: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   picker: {
-    height: 50,
+    flex: 1,
+    marginLeft: Spacing.sm,
   },
   typeContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: Spacing.md,
   },
   typeButton: {
     flex: 1,
+    borderRadius: BorderRadius.base,
+    overflow: 'hidden',
+  },
+  typeButtonActive: {
+  },
+  typeGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderRadius: 8,
-    padding: 16,
-    gap: 8,
-  },
-  typeButtonActive: {
-    borderWidth: 2,
+    paddingVertical: Spacing.base,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+    borderRadius: BorderRadius.base,
   },
   typeText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.semibold,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    padding: Spacing.base,
+    gap: Spacing.md,
+  },
+  button: {
+    flex: 1,
+    borderRadius: BorderRadius.base,
+    overflow: 'hidden',
+  },
+  cancelButtonStyle: {
+  },
+  cancelButton: {
+    paddingVertical: Spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: BorderRadius.base,
+  },
+  saveButtonStyle: {
+  },
+  gradientButton: {
+    paddingVertical: Spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  buttonText: {
+    fontSize: Typography.sizes.base,
+    fontWeight: Typography.weights.semibold,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 64,
+    paddingVertical: Spacing['4xl'],
+  },
+  emptyIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.base,
   },
   emptyText: {
-    fontSize: 16,
-    marginTop: 16,
-    fontWeight: '500',
+    fontSize: Typography.sizes.lg,
+    marginTop: Spacing.base,
+    fontWeight: Typography.weights.semibold,
   },
   emptySubtext: {
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: Typography.sizes.sm,
+    marginTop: Spacing.sm,
   },
 });

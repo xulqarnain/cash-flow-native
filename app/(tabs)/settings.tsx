@@ -336,6 +336,9 @@ export default function SettingsScreen() {
             <Text style={[styles.aboutDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               Track money owed to and by specific individuals with ease.
             </Text>
+            <Text style={[styles.aboutCredit, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+              Built with ❤️ By Xulqarnain
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -349,6 +352,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 120,
   },
   header: {
     marginBottom: 24,
@@ -409,5 +413,12 @@ const styles = StyleSheet.create({
   aboutDescription: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  aboutCredit: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
