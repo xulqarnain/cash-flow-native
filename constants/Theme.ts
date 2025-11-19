@@ -11,17 +11,17 @@ export const Colors = {
     warning: '#f59e0b', // amber
     info: '#06b6d4', // cyan
 
-    background: '#f0fdfa', // cyan tint
+    background: 'transparent',
     backgroundSecondary: '#ccfbf1',
-    surface: '#ffffff',
-    surfaceElevated: '#ffffff',
+    surface: 'rgba(255, 255, 255, 0.7)', // glass effect
+    surfaceElevated: 'rgba(255, 255, 255, 0.85)',
 
     text: '#0f172a',
     textSecondary: '#0e7490',
-    textTertiary: '#67e8f9',
+    textTertiary: '#475569',
 
-    border: '#a5f3fc',
-    borderLight: '#cffafe',
+    border: 'rgba(6, 182, 212, 0.2)',
+    borderLight: 'rgba(6, 182, 212, 0.1)',
 
     shadow: 'rgba(6, 182, 212, 0.15)',
   },
@@ -37,17 +37,17 @@ export const Colors = {
     warning: '#fbbf24',
     info: '#22d3ee',
 
-    background: '#083344', // deep cyan
+    background: 'transparent',
     backgroundSecondary: '#0e7490',
-    surface: '#164e63',
-    surfaceElevated: '#155e75',
+    surface: 'rgba(30, 41, 59, 0.7)', // glass effect
+    surfaceElevated: 'rgba(30, 41, 59, 0.85)',
 
     text: '#ecfeff',
     textSecondary: '#a5f3fc',
-    textTertiary: '#67e8f9',
+    textTertiary: '#94a3b8',
 
-    border: '#155e75',
-    borderLight: '#0e7490',
+    border: 'rgba(34, 211, 238, 0.2)',
+    borderLight: 'rgba(34, 211, 238, 0.1)',
 
     shadow: 'rgba(34, 211, 238, 0.3)',
   },
@@ -128,6 +128,13 @@ export const Shadows = {
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
+  },
+  xl: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
   },
 };
 

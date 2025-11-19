@@ -201,7 +201,8 @@ const styles = StyleSheet.create({
     bottom: Platform.OS === 'ios' ? 100 : 88,
     right: 20,
     alignItems: 'flex-end',
-    zIndex: 1000,
+    zIndex: 10000,
+    elevation: 10000,
   },
   fab: {
     width: 64,

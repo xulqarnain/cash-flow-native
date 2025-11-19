@@ -16,22 +16,14 @@ export function ThemedBackground({ children, style }: ThemedBackgroundProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  // Modern financial app gradient - always use gradient with glass effect
   if (theme === 'glass-blur') {
     return (
-      <BlurView
-        intensity={isDark ? 60 : 80}
-        tint={isDark ? 'dark' : 'light'}
-        style={[styles.container, { backgroundColor: isDark ? 'rgba(8, 51, 68, 0.7)' : 'rgba(240, 253, 250, 0.7)' }, style]}
-      >
-        {children}
-      </BlurView>
-    );
-  }
-
-  if (theme === 'gradient-black') {
-    return (
       <LinearGradient
-        colors={isDark ? ['rgba(0, 0, 0, 0.98)', 'rgba(15, 23, 42, 0.95)', 'rgba(8, 51, 68, 0.92)'] : ['rgba(240, 253, 250, 1)', 'rgba(207, 250, 254, 1)']}
+        colors={isDark
+          ? ['#0a0f1c', '#0d1b2a', '#1b263b', '#415a77']
+          : ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8']
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.container, style]}
@@ -41,11 +33,35 @@ export function ThemedBackground({ children, style }: ThemedBackgroundProps) {
     );
   }
 
-  // solid-black
+  if (theme === 'gradient-black') {
+    return (
+      <LinearGradient
+        colors={isDark
+          ? ['#000000', '#0f172a', '#1e293b', '#334155']
+          : ['#f8fafc', '#e2e8f0', '#cbd5e1', '#94a3b8']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.container, style]}
+      >
+        {children}
+      </LinearGradient>
+    );
+  }
+
+  // solid-black - still use subtle gradient for premium feel
   return (
-    <Animated.View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#f0fdfa' }, style]}>
+    <LinearGradient
+      colors={isDark
+        ? ['#000000', '#0a0a0a', '#141414']
+        : ['#ffffff', '#f9fafb', '#f3f4f6']
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.container, style]}
+    >
       {children}
-    </Animated.View>
+    </LinearGradient>
   );
 }
 
