@@ -53,42 +53,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getTabBarStyle = () => {
+    // Return only visual styles, not positioning (CustomTabBar handles positioning)
     switch (theme) {
       case 'gradient-black':
         return {
-          backgroundColor: 'rgba(0, 0, 0, 0.95)',
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          position: 'absolute' as const,
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 80,
         };
       case 'glass-blur':
         return {
-          backgroundColor: 'rgba(15, 23, 42, 0.8)',
-          borderTopWidth: 1,
-          borderTopColor: 'rgba(100, 255, 218, 0.1)',
-          position: 'absolute' as const,
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 80,
-          backdropFilter: 'blur(20px)',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
         };
       case 'solid-black':
         return {
-          backgroundColor: '#000000',
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          position: 'absolute' as const,
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 80,
         };
       default:
         return {};

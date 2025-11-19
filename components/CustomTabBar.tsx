@@ -115,7 +115,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents="box-none">
       <View style={styles.floatingWrapper}>
         {appTheme === 'glass-blur' ? (
           <BlurView
