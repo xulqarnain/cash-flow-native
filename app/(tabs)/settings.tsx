@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, Shadows, BorderRadius } from '@/constants/Theme';
 import { getAllPeople } from '@/database/peopleService';
 import { getAllTransactions, createTransaction } from '@/database/transactionsService';
 import { createPerson } from '@/database/peopleService';
@@ -17,6 +18,7 @@ import { resetDatabase } from '@/database/init';
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const themeColors = isDark ? Colors.dark : Colors.light;
   const { language, setLanguage, t } = useLanguage();
   const { currency, setCurrency } = useCurrency();
   const { theme, setTheme } = useAppTheme();
@@ -172,14 +174,14 @@ export default function SettingsScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.title, { color: themeColors.text }]}>
             {t('settings')}
           </Text>
         </View>
 
         {/* Language Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             {t('language')}
           </Text>
 
@@ -187,33 +189,33 @@ export default function SettingsScreen() {
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: language === 'en' ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
+                backgroundColor: themeColors.surface,
+                borderColor: language === 'en' ? themeColors.primary : themeColors.border,
                 borderWidth: language === 'en' ? 2 : 1,
               }
             ]}
             onPress={() => setLanguage('en')}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="language-outline" size={24} color="#06b6d4" />
+              <Ionicons name="language-outline" size={24} color={themeColors.primary} />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   {t('english')}
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   English
                 </Text>
               </View>
             </View>
-            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
+            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: language === 'ur' ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
+                backgroundColor: themeColors.surface,
+                borderColor: language === 'ur' ? themeColors.primary : themeColors.border,
                 borderWidth: language === 'ur' ? 2 : 1,
               }
             ]}
@@ -222,10 +224,10 @@ export default function SettingsScreen() {
             <View style={styles.settingLeft}>
               <Ionicons name="language-outline" size={24} color="#ec4899" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   {t('roman_urdu')}
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Roman Urdu
                 </Text>
               </View>
@@ -236,7 +238,7 @@ export default function SettingsScreen() {
 
         {/* Currency Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Currency
           </Text>
 
@@ -246,8 +248,8 @@ export default function SettingsScreen() {
               style={[
                 styles.settingItem,
                 {
-                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                  borderColor: currency === curr.code ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
+                  backgroundColor: themeColors.surface,
+                  borderColor: currency === curr.code ? themeColors.primary : themeColors.border,
                   borderWidth: currency === curr.code ? 2 : 1,
                 }
               ]}
@@ -256,19 +258,19 @@ export default function SettingsScreen() {
               <View style={styles.settingLeft}>
                 <Ionicons name="cash-outline" size={24} color="#10b981" />
                 <View style={styles.settingText}>
-                  <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                  <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                     {curr.symbol} - {curr.name}
                   </Text>
                 </View>
               </View>
-              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
+              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Theme Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Theme
           </Text>
 
@@ -278,8 +280,8 @@ export default function SettingsScreen() {
               style={[
                 styles.settingItem,
                 {
-                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                  borderColor: theme === themeOption.id ? '#06b6d4' : (isDark ? '#374151' : '#e5e7eb'),
+                  backgroundColor: themeColors.surface,
+                  borderColor: theme === themeOption.id ? themeColors.primary : themeColors.border,
                   borderWidth: theme === themeOption.id ? 2 : 1,
                 }
               ]}
@@ -295,27 +297,27 @@ export default function SettingsScreen() {
                   size={24}
                   color={
                     themeOption.id === 'gradient-black' ? '#8b5cf6' :
-                    themeOption.id === 'glass-blur' ? '#06b6d4' :
+                    themeOption.id === 'glass-blur' ? themeColors.primary :
                     '#ffffff'
                   }
                 />
                 <View style={styles.settingText}>
-                  <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                  <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                     {themeOption.name}
                   </Text>
-                  <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                  <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                     {themeOption.description}
                   </Text>
                 </View>
               </View>
-              {theme === themeOption.id && <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />}
+              {theme === themeOption.id && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Data Management Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Data Management
           </Text>
 
@@ -323,8 +325,8 @@ export default function SettingsScreen() {
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border,
               }
             ]}
             onPress={handleExportCSV}
@@ -332,23 +334,23 @@ export default function SettingsScreen() {
             <View style={styles.settingLeft}>
               <Ionicons name="download-outline" size={24} color="#22d3ee" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   Export Data (CSV)
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Export all people and transactions
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border,
               }
             ]}
             onPress={handleImportCSV}
@@ -356,15 +358,15 @@ export default function SettingsScreen() {
             <View style={styles.settingLeft}>
               <Ionicons name="cloud-upload-outline" size={24} color="#10b981" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   Import Data (CSV)
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Import people and transactions from CSV
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -378,7 +380,7 @@ export default function SettingsScreen() {
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                backgroundColor: themeColors.surface,
                 borderColor: '#f43f5e',
                 borderWidth: 1,
               }
@@ -391,7 +393,7 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingTitle, { color: '#f43f5e' }]}>
                   Reset Database
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Delete all data permanently
                 </Text>
               </View>
@@ -402,26 +404,26 @@ export default function SettingsScreen() {
 
         {/* About Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             About
           </Text>
           <View style={[
             styles.aboutCard,
             {
-              backgroundColor: isDark ? '#1f2937' : '#ffffff',
-              borderColor: isDark ? '#374151' : '#e5e7eb',
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
             }
           ]}>
-            <Text style={[styles.aboutTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+            <Text style={[styles.aboutTitle, { color: themeColors.text }]}>
               Cash Flow Tracker
             </Text>
-            <Text style={[styles.aboutVersion, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.aboutVersion, { color: themeColors.textSecondary }]}>
               Version 1.0.0
             </Text>
-            <Text style={[styles.aboutDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.aboutDescription, { color: themeColors.textSecondary }]}>
               Track money owed to and by specific individuals with ease.
             </Text>
-            <Text style={[styles.aboutCredit, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.aboutCredit, { color: themeColors.textSecondary }]}>
               Built with ❤️ By Xulqarnain
             </Text>
           </View>

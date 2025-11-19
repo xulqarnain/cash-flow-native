@@ -1,10 +1,7 @@
 import { ReactNode } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import Animated from 'react-native-reanimated';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/Theme';
 
 interface ThemedBackgroundProps {
   children: ReactNode;
@@ -12,56 +9,21 @@ interface ThemedBackgroundProps {
 }
 
 export function ThemedBackground({ children, style }: ThemedBackgroundProps) {
-  const { theme } = useAppTheme();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
-  // Modern financial app gradient - always use gradient with glass effect
-  if (theme === 'glass-blur') {
-    return (
-      <LinearGradient
-        colors={isDark
-          ? ['#0a0f1c', '#0d1b2a', '#1b263b', '#415a77']
-          : ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.container, style]}
-      >
-        {children}
-      </LinearGradient>
-    );
-  }
-
-  if (theme === 'gradient-black') {
-    return (
-      <LinearGradient
-        colors={isDark
-          ? ['#000000', '#0f172a', '#1e293b', '#334155']
-          : ['#f8fafc', '#e2e8f0', '#cbd5e1', '#94a3b8']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.container, style]}
-      >
-        {children}
-      </LinearGradient>
-    );
-  }
-
-  // solid-black - still use subtle gradient for premium feel
+  // Clean, professional solid background - no gradients
   return (
-    <LinearGradient
-      colors={isDark
-        ? ['#000000', '#0a0a0a', '#141414']
-        : ['#ffffff', '#f9fafb', '#f3f4f6']
-      }
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.container, style]}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.background },
+        style
+      ]}
     >
       {children}
-    </LinearGradient>
+    </View>
   );
 }
 

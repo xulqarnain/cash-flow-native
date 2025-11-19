@@ -5,14 +5,11 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { Colors, BorderRadius, Shadows } from '@/constants/Theme';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -99,17 +96,22 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             style={[styles.tab, animatedStyle]}
           >
             {isFocused ? (
-              <LinearGradient
-                colors={['#06b6d4', '#22d3ee']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.activeTab, Shadows.md]}
+              <View
+                style={[
+                  styles.activeTab,
+                  { backgroundColor: theme.primary },
+                  Shadows.md
+                ]}
               >
                 <Ionicons name={iconName as any} size={20} color="#ffffff" />
-              </LinearGradient>
+              </View>
             ) : (
               <View style={styles.inactiveTab}>
-                <Ionicons name={iconName as any} size={20} color="#67e8f9" />
+                <Ionicons
+                  name={iconName as any}
+                  size={20}
+                  color={theme.textTertiary}
+                />
               </View>
             )}
           </AnimatedTouchableOpacity>
@@ -120,29 +122,18 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 
   return (
     <View style={styles.container} pointerEvents="box-none">
-      <View style={styles.floatingWrapper}>
-        {appTheme === 'glass-blur' ? (
-          <BlurView
-            intensity={90}
-            tint={isDark ? 'dark' : 'light'}
-            style={[styles.tabBar, tabBarStyle]}
-          >
-            {renderTabBarContent()}
-          </BlurView>
-        ) : appTheme === 'gradient-black' ? (
-          <LinearGradient
-            colors={isDark ? ['rgba(0, 0, 0, 0.95)', 'rgba(15, 23, 42, 0.9)'] : ['rgba(255, 255, 255, 0.98)', 'rgba(240, 253, 250, 0.95)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.tabBar, tabBarStyle]}
-          >
-            {renderTabBarContent()}
-          </LinearGradient>
-        ) : (
-          <View style={[styles.tabBar, tabBarStyle, { backgroundColor: isDark ? '#000000' : '#ffffff' }]}>
-            {renderTabBarContent()}
-          </View>
-        )}
+      <View style={[
+        styles.floatingWrapper,
+        { backgroundColor: theme.surface },
+        Shadows.lg
+      ]}>
+        <View style={[
+          styles.tabBar,
+          tabBarStyle,
+          { backgroundColor: theme.surface, borderColor: theme.border }
+        ]}>
+          {renderTabBarContent()}
+        </View>
       </View>
     </View>
   );
@@ -160,20 +151,15 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   floatingWrapper: {
-    borderRadius: 32,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
   },
   tabBar: {
-    borderRadius: 32,
-    borderWidth: 0,
+    borderRadius: 24,
+    borderWidth: 1,
     paddingVertical: 12,
     paddingHorizontal: 8,
-    minHeight: 80,
+    minHeight: 72,
   },
   tabsContainer: {
     flexDirection: 'row',
