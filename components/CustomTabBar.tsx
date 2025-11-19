@@ -121,7 +121,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
           <BlurView
             intensity={90}
             tint={isDark ? 'dark' : 'light'}
-            style={[styles.tabBar, tabBarStyle, Shadows.xl]}
+            style={[styles.tabBar, tabBarStyle]}
           >
             {renderTabBarContent()}
           </BlurView>
@@ -130,12 +130,12 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             colors={isDark ? ['rgba(0, 0, 0, 0.95)', 'rgba(15, 23, 42, 0.9)'] : ['rgba(255, 255, 255, 0.98)', 'rgba(240, 253, 250, 0.95)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.tabBar, tabBarStyle, Shadows.xl]}
+            style={[styles.tabBar, tabBarStyle]}
           >
             {renderTabBarContent()}
           </LinearGradient>
         ) : (
-          <View style={[styles.tabBar, tabBarStyle, { backgroundColor: isDark ? '#000000' : '#ffffff' }, Shadows.xl]}>
+          <View style={[styles.tabBar, tabBarStyle, { backgroundColor: isDark ? '#000000' : '#ffffff' }]}>
             {renderTabBarContent()}
           </View>
         )}
@@ -152,21 +152,30 @@ const styles = StyleSheet.create({
     right: 0,
     paddingBottom: Platform.OS === 'ios' ? 20 : 16,
     paddingHorizontal: 16,
+    zIndex: 100,
+    elevation: 10,
   },
   floatingWrapper: {
     borderRadius: 32,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
   tabBar: {
     borderRadius: 32,
     borderWidth: 0,
     paddingVertical: 12,
     paddingHorizontal: 8,
+    minHeight: 80,
   },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+    paddingVertical: 4,
   },
   tab: {
     flex: 1,
