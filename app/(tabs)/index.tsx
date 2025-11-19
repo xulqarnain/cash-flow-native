@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import { ThemedBackground } from '@/components/ThemedBackground';
 import { GlassCard } from '@/components/GlassCard';
 import { FlowCard } from '@/components/FlowCard';
 import { PersonCard } from '@/components/PersonCard';
@@ -61,8 +62,9 @@ export default function DashboardScreen() {
   const balanceVariant = stats.totalBalance > 0 ? 'success' : stats.totalBalance < 0 ? 'danger' : 'primary';
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView
+    <ThemedBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -129,7 +131,8 @@ export default function DashboardScreen() {
 
       {/* Floating Action Button */}
       <FloatingActionButton />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ThemedBackground>
   );
 }
 

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLanguage, type Language } from '@/contexts/LanguageContext';
 import { useCurrency, currencies, type Currency } from '@/contexts/CurrencyContext';
 import { useAppTheme, themeOptions, type AppTheme } from '@/contexts/ThemeContext';
+import { ThemedBackground } from '@/components/ThemedBackground';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -166,8 +167,9 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ThemedBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
@@ -425,7 +427,8 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ThemedBackground>
   );
 }
 

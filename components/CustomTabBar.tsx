@@ -116,28 +116,30 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 
   return (
     <View style={styles.container}>
-      {appTheme === 'glass-blur' ? (
-        <BlurView
-          intensity={80}
-          tint={isDark ? 'dark' : 'light'}
-          style={[styles.tabBar, tabBarStyle]}
-        >
-          {renderTabBarContent()}
-        </BlurView>
-      ) : appTheme === 'gradient-black' ? (
-        <LinearGradient
-          colors={['rgba(0, 0, 0, 0.95)', 'rgba(15, 23, 42, 0.9)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.tabBar, tabBarStyle]}
-        >
-          {renderTabBarContent()}
-        </LinearGradient>
-      ) : (
-        <View style={[styles.tabBar, tabBarStyle, { backgroundColor: '#000000' }]}>
-          {renderTabBarContent()}
-        </View>
-      )}
+      <View style={styles.floatingWrapper}>
+        {appTheme === 'glass-blur' ? (
+          <BlurView
+            intensity={90}
+            tint={isDark ? 'dark' : 'light'}
+            style={[styles.tabBar, tabBarStyle, Shadows.xl]}
+          >
+            {renderTabBarContent()}
+          </BlurView>
+        ) : appTheme === 'gradient-black' ? (
+          <LinearGradient
+            colors={isDark ? ['rgba(0, 0, 0, 0.95)', 'rgba(15, 23, 42, 0.9)'] : ['rgba(255, 255, 255, 0.98)', 'rgba(240, 253, 250, 0.95)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.tabBar, tabBarStyle, Shadows.xl]}
+          >
+            {renderTabBarContent()}
+          </LinearGradient>
+        ) : (
+          <View style={[styles.tabBar, tabBarStyle, { backgroundColor: isDark ? '#000000' : '#ffffff' }, Shadows.xl]}>
+            {renderTabBarContent()}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -148,17 +150,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    paddingHorizontal: 16,
+  },
+  floatingWrapper: {
+    borderRadius: 32,
+    overflow: 'hidden',
   },
   tabBar: {
-    borderTopWidth: 1,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
-    paddingTop: 12,
+    borderRadius: 32,
+    borderWidth: 0,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   tab: {
     flex: 1,

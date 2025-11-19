@@ -3,6 +3,7 @@ import { View, StyleSheet, Text, TouchableOpacity, TextInput } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemedBackground } from '@/components/ThemedBackground';
 import { TransactionList } from '@/components/TransactionList';
 import { initDatabase } from '@/database/init';
 import { getAllTransactions, searchTransactions } from '@/database/transactionsService';
@@ -50,8 +51,9 @@ export default function HistoryScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
-      {/* Header */}
+    <ThemedBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
           Transaction History
@@ -116,7 +118,8 @@ export default function HistoryScreen() {
         }
         onTransactionPress={(txn) => router.push(`/transaction/${txn.id}`)}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ThemedBackground>
   );
 }
 

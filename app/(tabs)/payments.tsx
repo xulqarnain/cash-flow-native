@@ -20,7 +20,8 @@ import { getAllPeople } from '@/database/peopleService';
 import type { TransactionWithPerson, Person } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCurrency } from '@/contexts/CurrencyContext';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import { CurrencyText } from '@/components/CurrencyText';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -30,7 +31,6 @@ export default function PaymentsScreen() {
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
-  const { formatAmount } = useCurrency();
   const router = useRouter();
 
   const [transactions, setTransactions] = useState<TransactionWithPerson[]>([]);
@@ -115,8 +115,9 @@ export default function PaymentsScreen() {
   const hasActiveFilters = selectedPersonId > 0 || selectedCategory.trim() || startDate || endDate;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView
+    <ThemedBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -245,7 +246,12 @@ export default function PaymentsScreen() {
             >
               <Ionicons name="arrow-down" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_receive')}</Text>
-              <Text style={styles.summaryAmount}>{formatAmount(totalToReceive)}</Text>
+              <CurrencyText
+                amount={totalToReceive}
+                symbolSize={10}
+                amountSize={Typography.sizes['2xl']}
+                color="#ffffff"
+              />
               <Text style={styles.summaryCount}>{transactionsToReceive.length} txns</Text>
             </LinearGradient>
           </View>
@@ -259,7 +265,12 @@ export default function PaymentsScreen() {
             >
               <Ionicons name="arrow-up" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_pay')}</Text>
-              <Text style={styles.summaryAmount}>{formatAmount(totalToPay)}</Text>
+              <CurrencyText
+                amount={totalToPay}
+                symbolSize={10}
+                amountSize={Typography.sizes['2xl']}
+                color="#ffffff"
+              />
               <Text style={styles.summaryCount}>{transactionsToPay.length} txns</Text>
             </LinearGradient>
           </View>
@@ -299,7 +310,6 @@ export default function PaymentsScreen() {
                 index={index}
                 isDark={isDark}
                 theme={theme}
-                formatAmount={formatAmount}
                 onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
@@ -340,14 +350,14 @@ export default function PaymentsScreen() {
                 index={index}
                 isDark={isDark}
                 theme={theme}
-                formatAmount={formatAmount}
                 onPress={() => router.push(`/person/${transaction.personId}`)}
               />
             ))
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ThemedBackground>
   );
 }
 
@@ -357,11 +367,10 @@ interface TransactionCardProps {
   index: number;
   isDark: boolean;
   theme: any;
-  formatAmount: (amount: number) => string;
   onPress: () => void;
 }
 
-function TransactionCard({ transaction, type, index, isDark, theme, formatAmount, onPress }: TransactionCardProps) {
+function TransactionCard({ transaction, type, index, isDark, theme, onPress }: TransactionCardProps) {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const translateY = useSharedValue(0);
@@ -457,12 +466,12 @@ function TransactionCard({ transaction, type, index, isDark, theme, formatAmount
         </View>
       </View>
 
-      <Text style={[
-        styles.amount,
-        { color: type === 'receive' ? theme.success : theme.danger }
-      ]}>
-        {formatAmount(transaction.amount)}
-      </Text>
+      <CurrencyText
+        amount={transaction.amount}
+        symbolSize={9}
+        amountSize={Typography.sizes.lg}
+        color={type === 'receive' ? theme.success : theme.danger}
+      />
     </AnimatedTouchable>
   );
 }
