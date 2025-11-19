@@ -64,6 +64,8 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               switch (route.name) {
                 case 'index':
                   return isFocused ? 'home' : 'home-outline';
+                case 'payments':
+                  return isFocused ? 'wallet' : 'wallet-outline';
                 case 'history':
                   return isFocused ? 'time' : 'time-outline';
                 case 'settings':

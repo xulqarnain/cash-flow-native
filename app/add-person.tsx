@@ -1,19 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { createPerson } from '@/database/peopleService';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function AddPersonModal() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
+  const { t } = useLanguage();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(30);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
+    translateY.value = withSpring(0, { damping: 15 });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -21,89 +49,145 @@ export default function AddPersonModal() {
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
     try {
       await createPerson(name.trim(), phone.trim() || undefined);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (error) {
       console.error('Error creating person:', error);
       Alert.alert('Error', 'Failed to add person');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
+        {/* Header */}
         <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-          <Text style={[styles.cancelText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-            Cancel
+          <TouchableOpacity onPress={handleCancel} style={styles.iconButton}>
+            <Ionicons name="close" size={28} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: theme.text }]}>
+            {t('add_person')}
           </Text>
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-          Add Person
-        </Text>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-          style={styles.saveButton}
-        >
-          <Text style={[
-            styles.saveText,
-            { color: isSubmitting ? '#9ca3af' : '#3b82f6' }
-          ]}>
-            Save
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Name *
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
-            ]}
-            placeholder="Enter name"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={name}
-            onChangeText={setName}
-            autoFocus
-          />
+          <View style={{ width: 40 }} />
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Phone (Optional)
-          </Text>
-          <TextInput
+        {/* Form */}
+        <Animated.View style={[styles.formContainer, animatedStyle]}>
+          <View style={styles.form}>
+            {/* Icon Header */}
+            <View style={styles.iconHeader}>
+              <LinearGradient
+                colors={['#6366f1', '#8b5cf6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.iconCircle}
+              >
+                <Ionicons name="person-add" size={32} color="#ffffff" />
+              </LinearGradient>
+            </View>
+
+            {/* Name Input */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('name')} *
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="person-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder={t('enter_name')}
+                  placeholderTextColor={theme.textTertiary}
+                  value={name}
+                  onChangeText={setName}
+                  autoFocus
+                />
+              </View>
+            </View>
+
+            {/* Phone Input */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>
+                {t('phone')} ({t('optional')})
+              </Text>
+              <View style={[
+                styles.inputContainer,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                Shadows.sm,
+              ]}>
+                <Ionicons name="call-outline" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder={t('enter_phone')}
+                  placeholderTextColor={theme.textTertiary}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <AnimatedTouchable
+            onPress={handleCancel}
             style={[
-              styles.input,
-              {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
-                color: isDark ? '#f9fafb' : '#111827',
-              }
+              styles.button,
+              styles.cancelButtonStyle,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+              Shadows.base,
             ]}
-            placeholder="Enter phone number"
-            placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
+          >
+            <Text style={[styles.buttonText, { color: theme.text }]}>
+              {t('cancel')}
+            </Text>
+          </AnimatedTouchable>
+
+          <AnimatedTouchable
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            style={[styles.button, styles.saveButtonStyle]}
+          >
+            <LinearGradient
+              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#6366f1', '#8b5cf6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.gradientButton, Shadows.md]}
+            >
+              {isSubmitting ? (
+                <Text style={[styles.buttonText, { color: '#ffffff' }]}>
+                  Saving...
+                </Text>
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={20} color="#ffffff" />
+                  <Text style={[styles.buttonText, { color: '#ffffff', marginLeft: Spacing.sm }]}>
+                    {t('save')}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </AnimatedTouchable>
         </View>
-      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -120,40 +204,83 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
   },
-  cancelButton: {
-    padding: 8,
-  },
-  cancelText: {
-    fontSize: 16,
+  iconButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: Typography.sizes['2xl'],
+    fontWeight: Typography.weights.bold,
   },
-  saveButton: {
-    padding: 8,
-  },
-  saveText: {
-    fontSize: 16,
-    fontWeight: '600',
+  formContainer: {
+    flex: 1,
   },
   form: {
-    padding: 16,
+    padding: Spacing.xl,
+  },
+  iconHeader: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   formGroup: {
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: Spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.base,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.xs,
   },
   input: {
+    flex: 1,
+    fontSize: Typography.sizes.base,
+    marginLeft: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    padding: Spacing.base,
+    gap: Spacing.md,
+  },
+  button: {
+    flex: 1,
+    borderRadius: BorderRadius.base,
+    overflow: 'hidden',
+  },
+  cancelButtonStyle: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+  },
+  saveButtonStyle: {
+  },
+  gradientButton: {
+    paddingVertical: Spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  buttonText: {
+    fontSize: Typography.sizes.base,
+    fontWeight: Typography.weights.semibold,
   },
 });
