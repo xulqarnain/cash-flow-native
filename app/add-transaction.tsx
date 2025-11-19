@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import Animated, {
   useAnimatedStyle,
@@ -38,6 +37,7 @@ export default function AddTransactionModal() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
 
   const [people, setPeople] = useState<Person[]>([]);
@@ -170,18 +170,20 @@ export default function AddTransactionModal() {
           <Animated.View style={[styles.formContainer, animatedStyle]}>
             {/* Icon Header */}
             <View style={styles.iconHeader}>
-              <LinearGradient
-                colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconCircle}
+              <View
+                style={[
+                  styles.iconCircle,
+                  {
+                    backgroundColor: type === 'incoming' ? themeColors.success : themeColors.danger
+                  }
+                ]}
               >
                 <Ionicons
                   name={type === 'incoming' ? 'arrow-down' : 'arrow-up'}
                   size={32}
                   color="#ffffff"
                 />
-              </LinearGradient>
+              </View>
             </View>
 
             {/* Transaction Type */}
@@ -197,11 +199,13 @@ export default function AddTransactionModal() {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
                 >
-                  <LinearGradient
-                    colors={type === 'incoming' ? ['#10b981', '#14b8a6'] : ['transparent', 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.typeGradient, type !== 'incoming' && { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                  <View
+                    style={[
+                      styles.typeGradient,
+                      type === 'incoming'
+                        ? { backgroundColor: themeColors.success }
+                        : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }
+                    ]}
                   >
                     <Ionicons
                       name="arrow-down"
@@ -214,7 +218,7 @@ export default function AddTransactionModal() {
                     ]}>
                       {t('incoming')}
                     </Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -224,11 +228,13 @@ export default function AddTransactionModal() {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
                 >
-                  <LinearGradient
-                    colors={type === 'outgoing' ? ['#f43f5e', '#fb7185'] : ['transparent', 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.typeGradient, type !== 'outgoing' && { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                  <View
+                    style={[
+                      styles.typeGradient,
+                      type === 'outgoing'
+                        ? { backgroundColor: themeColors.danger }
+                        : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }
+                    ]}
                   >
                     <Ionicons
                       name="arrow-up"
@@ -241,7 +247,7 @@ export default function AddTransactionModal() {
                     ]}>
                       {t('outgoing')}
                     </Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -378,11 +384,18 @@ export default function AddTransactionModal() {
             disabled={isSubmitting}
             style={[styles.button, styles.saveButtonStyle]}
           >
-            <LinearGradient
-              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : (type === 'incoming' ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185'])}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.gradientButton, Shadows.md]}
+            <View
+              style={[
+                styles.gradientButton,
+                {
+                  backgroundColor: isSubmitting
+                    ? '#9ca3af'
+                    : type === 'incoming'
+                    ? themeColors.success
+                    : themeColors.danger
+                },
+                Shadows.md
+              ]}
             >
               {isSubmitting ? (
                 <Text style={[styles.buttonText, { color: '#ffffff' }]}>
@@ -396,7 +409,7 @@ export default function AddTransactionModal() {
                   </Text>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </AnimatedTouchable>
         </View>
       </KeyboardAvoidingView>

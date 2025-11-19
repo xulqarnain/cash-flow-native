@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -42,6 +41,7 @@ export default function ExpensesScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -231,11 +231,16 @@ export default function ExpensesScreen() {
           </View>
 
           {/* Total Card */}
-          <LinearGradient
-            colors={['#f59e0b', '#fb923c']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.totalCard, Shadows.md]}
+          <View
+            style={[
+              styles.totalCard,
+              {
+                backgroundColor: '#f59e0b',
+                borderColor: themeColors.border,
+                borderWidth: 1
+              },
+              Shadows.md
+            ]}
           >
             <Ionicons name="wallet" size={28} color="#ffffff" />
             <Text style={styles.totalLabel}>Total Expenses</Text>
@@ -245,7 +250,7 @@ export default function ExpensesScreen() {
               amountSize={Typography.sizes['3xl']}
               color="#ffffff"
             />
-          </LinearGradient>
+          </View>
 
           {/* Filters */}
           {showFilters && (
@@ -451,17 +456,14 @@ function ExpenseCard({ expense, index, theme, isDark, onEdit, onDelete }: Expens
     <AnimatedTouchable
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[styles.expenseCard, { backgroundColor: theme.surface }, Shadows.base, animatedStyle]}
+      style={[styles.expenseCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }, Shadows.base, animatedStyle]}
     >
       <View style={styles.cardLeft}>
-        <LinearGradient
-          colors={['#f59e0b', '#fb923c']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.avatar}
+        <View
+          style={[styles.avatar, { backgroundColor: '#f59e0b' }]}
         >
           <Ionicons name="wallet" size={20} color="#ffffff" />
-        </LinearGradient>
+        </View>
         <View style={styles.cardInfo}>
           <Text style={[styles.expenseDescription, { color: theme.text }]}>
             {expense.description}

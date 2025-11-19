@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Text, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CurrencyText } from './CurrencyText';
-import { BorderRadius, Shadows, Spacing, Typography, Gradients } from '@/constants/Theme';
+import { BorderRadius, Shadows, Spacing, Typography, Colors } from '@/constants/Theme';
 
 interface GlassCardProps {
   title: string;
@@ -20,11 +19,10 @@ interface GlassCardProps {
   variant?: 'primary' | 'success' | 'danger';
 }
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-
 export function GlassCard({ title, value, subtitle, variant = 'primary' }: GlassCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const scale = useSharedValue(0.95);
   const opacity = useSharedValue(0);
@@ -39,18 +37,24 @@ export function GlassCard({ title, value, subtitle, variant = 'primary' }: Glass
     transform: [{ scale: scale.value }],
   }));
 
-  const gradientColors = {
-    primary: isDark ? ['#0891b2', '#06b6d4', '#22d3ee'] : Gradients.primary,
-    success: isDark ? ['#10b981', '#14b8a6', '#22d3ee'] : Gradients.success,
-    danger: isDark ? ['#f43f5e', '#fb7185', '#fda4af'] : Gradients.danger,
+  const bgColors = {
+    primary: themeColors.primary,
+    success: themeColors.success,
+    danger: themeColors.danger,
   };
 
   return (
-    <AnimatedLinearGradient
-      colors={gradientColors[variant]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.card, Shadows.lg, animatedStyle]}
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          backgroundColor: bgColors[variant],
+          borderColor: themeColors.border,
+          borderWidth: 1
+        },
+        Shadows.lg,
+        animatedStyle
+      ]}
     >
       <Text style={styles.title}>{title}</Text>
       <CurrencyText
@@ -60,7 +64,7 @@ export function GlassCard({ title, value, subtitle, variant = 'primary' }: Glass
         color="#ffffff"
       />
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-    </AnimatedLinearGradient>
+    </Animated.View>
   );
 }
 

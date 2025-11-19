@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, ScrollView, StyleSheet, Text, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import Animated, {
@@ -30,6 +29,7 @@ export default function PaymentsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
   const router = useRouter();
 
@@ -238,11 +238,16 @@ export default function PaymentsScreen() {
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
           <View style={[styles.summaryCard, { flex: 1, marginRight: Spacing.sm }]}>
-            <LinearGradient
-              colors={['#10b981', '#14b8a6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.summaryGradient, Shadows.md]}
+            <View
+              style={[
+                styles.summaryGradient,
+                {
+                  backgroundColor: themeColors.success,
+                  borderColor: themeColors.border,
+                  borderWidth: 1
+                },
+                Shadows.md
+              ]}
             >
               <Ionicons name="arrow-down" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_receive')}</Text>
@@ -253,15 +258,20 @@ export default function PaymentsScreen() {
                 color="#ffffff"
               />
               <Text style={styles.summaryCount}>{transactionsToReceive.length} txns</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           <View style={[styles.summaryCard, { flex: 1, marginLeft: Spacing.sm }]}>
-            <LinearGradient
-              colors={['#f43f5e', '#fb7185']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.summaryGradient, Shadows.md]}
+            <View
+              style={[
+                styles.summaryGradient,
+                {
+                  backgroundColor: themeColors.danger,
+                  borderColor: themeColors.border,
+                  borderWidth: 1
+                },
+                Shadows.md
+              ]}
             >
               <Ionicons name="arrow-up" size={24} color="#ffffff" />
               <Text style={styles.summaryLabel}>{t('need_to_pay')}</Text>
@@ -272,7 +282,7 @@ export default function PaymentsScreen() {
                 color="#ffffff"
               />
               <Text style={styles.summaryCount}>{transactionsToPay.length} txns</Text>
-            </LinearGradient>
+            </View>
           </View>
         </View>
 
@@ -280,14 +290,11 @@ export default function PaymentsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <LinearGradient
-                colors={['#10b981', '#14b8a6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.sectionIcon}
+              <View
+                style={[styles.sectionIcon, { backgroundColor: themeColors.success }]}
               >
                 <Ionicons name="arrow-down" size={16} color="#ffffff" />
-              </LinearGradient>
+              </View>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 {t('need_to_receive')}
               </Text>
@@ -320,14 +327,11 @@ export default function PaymentsScreen() {
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <LinearGradient
-                colors={['#f43f5e', '#fb7185']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.sectionIcon}
+              <View
+                style={[styles.sectionIcon, { backgroundColor: themeColors.danger }]}
               >
                 <Ionicons name="arrow-up" size={16} color="#ffffff" />
-              </LinearGradient>
+              </View>
               <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 {t('need_to_pay')}
               </Text>
@@ -409,9 +413,7 @@ function TransactionCard({ transaction, type, index, isDark, theme, onPress }: T
     scale.value = withSpring(1);
   };
 
-  const gradient = type === 'receive'
-    ? ['#10b981', '#14b8a6']
-    : ['#f43f5e', '#fb7185'];
+  const bgColor = type === 'receive' ? '#10b981' : '#f43f5e';
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -425,20 +427,17 @@ function TransactionCard({ transaction, type, index, isDark, theme, onPress }: T
       onPressOut={handlePressOut}
       style={[
         styles.transactionCard,
-        { backgroundColor: theme.surface },
+        { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 },
         Shadows.base,
         animatedStyle,
       ]}
     >
       <View style={styles.cardLeft}>
-        <LinearGradient
-          colors={gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.avatar}
+        <View
+          style={[styles.avatar, { backgroundColor: bgColor }]}
         >
           <Ionicons name="person" size={20} color="#ffffff" />
-        </LinearGradient>
+        </View>
 
         <View style={styles.cardInfo}>
           <Text style={[styles.personName, { color: theme.text }]}>

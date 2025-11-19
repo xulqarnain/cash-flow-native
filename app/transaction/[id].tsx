@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { initDatabase } from '@/database/init';
 import { getTransactionById, deleteTransaction } from '@/database/transactionsService';
@@ -19,6 +18,7 @@ export default function TransactionDetailScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
 
   const [transaction, setTransaction] = useState<Transaction | null>(null);
@@ -86,7 +86,7 @@ export default function TransactionDetailScreen() {
   }
 
   const isIncoming = transaction.type === 'incoming';
-  const gradientColors = isIncoming ? ['#10b981', '#14b8a6'] : ['#f43f5e', '#fb7185'];
+  const bgColor = isIncoming ? themeColors.success : themeColors.danger;
   const iconName = isIncoming ? 'arrow-down' : 'arrow-up';
 
   const formatDate = (dateString: string) => {
@@ -115,11 +115,16 @@ export default function TransactionDetailScreen() {
 
         {/* Amount Card */}
         <View style={styles.amountSection}>
-          <LinearGradient
-            colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.amountCard, Shadows.lg]}
+          <View
+            style={[
+              styles.amountCard,
+              {
+                backgroundColor: bgColor,
+                borderColor: themeColors.border,
+                borderWidth: 1
+              },
+              Shadows.lg
+            ]}
           >
             <View style={styles.iconCircle}>
               <Ionicons name={iconName} size={40} color="#ffffff" />
@@ -133,7 +138,7 @@ export default function TransactionDetailScreen() {
               amountSize={Typography.sizes['4xl']}
               color="#ffffff"
             />
-          </LinearGradient>
+          </View>
         </View>
 
         {/* Details */}

@@ -8,18 +8,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, BorderRadius, Shadows, Spacing } from '@/constants/Theme';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 interface FABAction {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  color: string[];
+  color: string;
   onPress: () => void;
 }
 
@@ -28,6 +26,7 @@ export function FloatingActionButton() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const rotation = useSharedValue(0);
@@ -37,7 +36,7 @@ export function FloatingActionButton() {
     {
       icon: 'person-add',
       label: 'Add Person',
-      color: ['#6366f1', '#8b5cf6'],
+      color: '#6366f1',
       onPress: () => {
         router.push('/add-person');
         toggleExpanded();
@@ -46,7 +45,7 @@ export function FloatingActionButton() {
     {
       icon: 'cash',
       label: 'Add Transaction',
-      color: ['#10b981', '#14b8a6'],
+      color: '#10b981',
       onPress: () => {
         router.push('/add-transaction');
         toggleExpanded();
@@ -100,16 +99,13 @@ export function FloatingActionButton() {
         style={[styles.fab, animatedScale]}
         activeOpacity={0.9}
       >
-        <AnimatedLinearGradient
-          colors={['#6366f1', '#8b5cf6', '#d946ef']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.fabGradient, Shadows.lg]}
+        <Animated.View
+          style={[styles.fabGradient, { backgroundColor: themeColors.primary }, Shadows.lg, animatedScale]}
         >
           <Animated.View style={animatedRotation}>
             <Ionicons name="add" size={32} color="#ffffff" />
           </Animated.View>
-        </AnimatedLinearGradient>
+        </Animated.View>
       </AnimatedTouchableOpacity>
 
       {/* Overlay */}
@@ -168,14 +164,11 @@ function ActionButton({ action, index, isDark }: ActionButtonProps) {
         style={styles.actionTouchable}
         activeOpacity={0.8}
       >
-        <LinearGradient
-          colors={action.color}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.actionIcon, Shadows.md]}
+        <View
+          style={[styles.actionIcon, { backgroundColor: action.color }, Shadows.md]}
         >
           <Ionicons name={action.icon} size={24} color="#ffffff" />
-        </LinearGradient>
+        </View>
         <View style={[
           styles.actionLabel,
           {

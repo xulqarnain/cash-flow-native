@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,6 +23,7 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const isIncoming = type === 'incoming';
   const icon = isIncoming ? 'trending-down' : 'trending-up';
@@ -48,28 +48,27 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
     transform: [{ scale: scale.value }],
   }));
 
-  const iconGradient = isIncoming
-    ? ['#10b981', '#14b8a6']
-    : ['#f43f5e', '#fb7185'];
+  const iconBgColor = isIncoming
+    ? themeColors.success
+    : themeColors.danger;
 
   return (
     <Animated.View style={[
       styles.card,
       {
         backgroundColor: theme.surface,
+        borderColor: theme.border,
+        borderWidth: 1
       },
       Shadows.md,
       animatedStyle,
     ]}>
       <View style={styles.header}>
-        <LinearGradient
-          colors={iconGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.iconContainer}
+        <View
+          style={[styles.iconContainer, { backgroundColor: iconBgColor }]}
         >
           <Ionicons name={icon} size={20} color="#ffffff" />
-        </LinearGradient>
+        </View>
         <Text style={[styles.label, { color: theme.textSecondary }]}>
           {label}
         </Text>

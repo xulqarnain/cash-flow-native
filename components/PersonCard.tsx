@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -25,6 +24,7 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const scale = useSharedValue(1);
 
@@ -42,11 +42,11 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
 
   const hasBalance = person.balance !== 0;
 
-  const iconGradient = person.balance > 0
-    ? ['#10b981', '#14b8a6']
+  const iconBgColor = person.balance > 0
+    ? themeColors.success
     : person.balance < 0
-    ? ['#f43f5e', '#fb7185']
-    : isDark ? ['#0e7490', '#155e75'] : ['#a5f3fc', '#cffafe'];
+    ? themeColors.danger
+    : isDark ? '#0e7490' : '#06b6d4';
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -75,20 +75,19 @@ export function PersonCard({ person, onPress }: PersonCardProps) {
         styles.card,
         {
           backgroundColor: theme.surface,
+          borderColor: theme.border,
+          borderWidth: 1
         },
         Shadows.base,
         animatedStyle,
       ]}
     >
       <View style={styles.content}>
-        <LinearGradient
-          colors={iconGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.avatar}
+        <View
+          style={[styles.avatar, { backgroundColor: iconBgColor }]}
         >
           <Ionicons name="person" size={24} color="#ffffff" />
-        </LinearGradient>
+        </View>
 
         <View style={styles.info}>
           <Text style={[styles.name, { color: theme.text }]}>

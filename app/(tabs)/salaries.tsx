@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -44,6 +43,7 @@ export default function SalariesScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const [salaries, setSalaries] = useState<Salary[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -236,11 +236,16 @@ export default function SalariesScreen() {
           {/* Summary Cards */}
           <View style={styles.summaryContainer}>
             <View style={[styles.summaryCard, { flex: 1, marginRight: Spacing.xs }]}>
-              <LinearGradient
-                colors={['#10b981', '#14b8a6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.summaryGradient, Shadows.md]}
+              <View
+                style={[
+                  styles.summaryGradient,
+                  {
+                    backgroundColor: themeColors.success,
+                    borderColor: themeColors.border,
+                    borderWidth: 1
+                  },
+                  Shadows.md
+                ]}
               >
                 <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
                 <Text style={styles.summaryLabel}>Received</Text>
@@ -250,14 +255,19 @@ export default function SalariesScreen() {
                   amountSize={Typography.sizes.lg}
                   color="#ffffff"
                 />
-              </LinearGradient>
+              </View>
             </View>
             <View style={[styles.summaryCard, { flex: 1, marginHorizontal: Spacing.xs }]}>
-              <LinearGradient
-                colors={['#fbbf24', '#f59e0b']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.summaryGradient, Shadows.md]}
+              <View
+                style={[
+                  styles.summaryGradient,
+                  {
+                    backgroundColor: '#fbbf24',
+                    borderColor: themeColors.border,
+                    borderWidth: 1
+                  },
+                  Shadows.md
+                ]}
               >
                 <Ionicons name="time" size={20} color="#ffffff" />
                 <Text style={styles.summaryLabel}>Pending</Text>
@@ -267,14 +277,19 @@ export default function SalariesScreen() {
                   amountSize={Typography.sizes.lg}
                   color="#ffffff"
                 />
-              </LinearGradient>
+              </View>
             </View>
             <View style={[styles.summaryCard, { flex: 1, marginLeft: Spacing.xs }]}>
-              <LinearGradient
-                colors={['#f43f5e', '#fb7185']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.summaryGradient, Shadows.md]}
+              <View
+                style={[
+                  styles.summaryGradient,
+                  {
+                    backgroundColor: themeColors.danger,
+                    borderColor: themeColors.border,
+                    borderWidth: 1
+                  },
+                  Shadows.md
+                ]}
               >
                 <Ionicons name="close-circle" size={20} color="#ffffff" />
                 <Text style={styles.summaryLabel}>Not Received</Text>
@@ -284,7 +299,7 @@ export default function SalariesScreen() {
                   amountSize={Typography.sizes.lg}
                   color="#ffffff"
                 />
-              </LinearGradient>
+              </View>
             </View>
           </View>
 
@@ -492,9 +507,9 @@ function SalaryCard({ salary, index, theme, isDark, onEdit, onDelete }: SalaryCa
   };
 
   const statusColors = {
-    received: ['#10b981', '#14b8a6'],
-    pending: ['#fbbf24', '#f59e0b'],
-    not_received: ['#f43f5e', '#fb7185'],
+    received: '#10b981',
+    pending: '#fbbf24',
+    not_received: '#f43f5e',
   };
 
   const statusIcons = {
@@ -513,17 +528,14 @@ function SalaryCard({ salary, index, theme, isDark, onEdit, onDelete }: SalaryCa
     <AnimatedTouchable
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[styles.salaryCard, { backgroundColor: theme.surface }, Shadows.base, animatedStyle]}
+      style={[styles.salaryCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }, Shadows.base, animatedStyle]}
     >
       <View style={styles.cardLeft}>
-        <LinearGradient
-          colors={statusColors[salary.status]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.avatar}
+        <View
+          style={[styles.avatar, { backgroundColor: statusColors[salary.status] }]}
         >
           <Ionicons name={statusIcons[salary.status] as any} size={20} color="#ffffff" />
-        </LinearGradient>
+        </View>
         <View style={styles.cardInfo}>
           <Text style={[styles.salaryDescription, { color: theme.text }]}>
             {salary.description}

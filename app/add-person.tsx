@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert, KeyboardAvo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,6 +23,7 @@ export default function AddPersonModal() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
   const { t } = useLanguage();
 
   const [name, setName] = useState('');
@@ -90,14 +90,11 @@ export default function AddPersonModal() {
           <View style={styles.form}>
             {/* Icon Header */}
             <View style={styles.iconHeader}>
-              <LinearGradient
-                colors={['#06b6d4', '#8b5cf6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconCircle}
+              <View
+                style={[styles.iconCircle, { backgroundColor: themeColors.primary }]}
               >
                 <Ionicons name="person-add" size={32} color="#ffffff" />
-              </LinearGradient>
+              </View>
             </View>
 
             {/* Name Input */}
@@ -168,11 +165,14 @@ export default function AddPersonModal() {
             disabled={isSubmitting}
             style={[styles.button, styles.saveButtonStyle]}
           >
-            <LinearGradient
-              colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#06b6d4', '#8b5cf6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.gradientButton, Shadows.md]}
+            <View
+              style={[
+                styles.gradientButton,
+                {
+                  backgroundColor: isSubmitting ? '#9ca3af' : themeColors.primary
+                },
+                Shadows.md
+              ]}
             >
               {isSubmitting ? (
                 <Text style={[styles.buttonText, { color: '#ffffff' }]}>
@@ -186,7 +186,7 @@ export default function AddPersonModal() {
                   </Text>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </AnimatedTouchable>
         </View>
       </KeyboardAvoidingView>
