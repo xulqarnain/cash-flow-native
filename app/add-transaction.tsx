@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -85,7 +86,7 @@ export default function AddTransactionModal() {
 
   if (people.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
             <Text style={[styles.cancelText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
@@ -110,16 +111,17 @@ export default function AddTransactionModal() {
             Add a person first to create transactions
           </Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}
-    >
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
           <Text style={[styles.cancelText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
             Cancel
@@ -316,7 +318,8 @@ export default function AddTransactionModal() {
           />
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -324,12 +327,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  flex: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 8,
   },
   cancelButton: {
     padding: 8,
