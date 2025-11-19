@@ -1,5 +1,7 @@
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage, type Language } from '@/contexts/LanguageContext';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -12,6 +14,7 @@ import { resetDatabase } from '@/database/init';
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { language, setLanguage, t } = useLanguage();
 
   const handleExportCSV = async () => {
     try {
@@ -159,13 +162,70 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Settings
+            {t('settings')}
           </Text>
+        </View>
+
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+            {t('language')}
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.settingItem,
+              {
+                backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                borderColor: language === 'en' ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                borderWidth: language === 'en' ? 2 : 1,
+              }
+            ]}
+            onPress={() => setLanguage('en')}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="language-outline" size={24} color="#6366f1" />
+              <View style={styles.settingText}>
+                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                  {t('english')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                  English
+                </Text>
+              </View>
+            </View>
+            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color="#6366f1" />}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.settingItem,
+              {
+                backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                borderColor: language === 'ur' ? '#6366f1' : (isDark ? '#374151' : '#e5e7eb'),
+                borderWidth: language === 'ur' ? 2 : 1,
+              }
+            ]}
+            onPress={() => setLanguage('ur')}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="language-outline" size={24} color="#ec4899" />
+              <View style={styles.settingText}>
+                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                  {t('roman_urdu')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                  Roman Urdu
+                </Text>
+              </View>
+            </View>
+            {language === 'ur' && <Ionicons name="checkmark-circle" size={24} color="#ec4899" />}
+          </TouchableOpacity>
         </View>
 
         {/* Data Management Section */}
@@ -279,7 +339,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

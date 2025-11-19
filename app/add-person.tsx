@@ -150,16 +150,17 @@ export default function AddPersonModal() {
         <View style={styles.buttonContainer}>
           <AnimatedTouchable
             onPress={handleCancel}
-            style={[
-              styles.button,
-              styles.cancelButtonStyle,
+            style={[styles.button, styles.cancelButtonStyle]}
+          >
+            <View style={[
+              styles.cancelButton,
               { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
               Shadows.base,
-            ]}
-          >
-            <Text style={[styles.buttonText, { color: theme.text }]}>
-              {t('cancel')}
-            </Text>
+            ]}>
+              <Text style={[styles.buttonText, { color: theme.text }]}>
+                {t('cancel')}
+              </Text>
+            </View>
           </AnimatedTouchable>
 
           <AnimatedTouchable
@@ -269,7 +270,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cancelButtonStyle: {
+  },
+  cancelButton: {
+    paddingVertical: Spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
+    borderRadius: BorderRadius.base,
   },
   saveButtonStyle: {
   },

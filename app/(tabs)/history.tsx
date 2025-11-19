@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TransactionList } from '@/components/TransactionList';
@@ -49,7 +50,7 @@ export default function HistoryScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
@@ -114,7 +115,7 @@ export default function HistoryScreen() {
             : 'No transactions yet. Add one to get started!'
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
