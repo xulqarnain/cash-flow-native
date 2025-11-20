@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TransactionList } from '@/components/TransactionList';
+import { CurrencyText } from '@/components/CurrencyText';
 import { initDatabase } from '@/database/init';
 import { getPersonWithBalance, deletePerson } from '@/database/peopleService';
 import { getTransactionsByPerson } from '@/database/transactionsService';
@@ -64,30 +66,32 @@ export default function PersonDetailScreen() {
 
   if (!person) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
             Loading...
           </Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const balanceColor = person.balance > 0
     ? '#10b981'
     : person.balance < 0
-    ? '#ef4444'
+    ? '#f43f5e'
     : isDark ? '#9ca3af' : '#6b7280';
 
-  const balanceText = person.balance > 0
-    ? `Owes you $${person.balance.toFixed(2)}`
+  const balanceLabel = person.balance > 0
+    ? 'Owes you'
     : person.balance < 0
-    ? `You owe $${Math.abs(person.balance).toFixed(2)}`
+    ? 'You owe'
     : 'No balance';
 
+  const hasBalance = person.balance !== 0;
+
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -95,14 +99,14 @@ export default function PersonDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={isDark ? '#f9fafb' : '#111827'} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDeletePerson} style={styles.deleteButton}>
-            <Ionicons name="trash-outline" size={24} color="#ef4444" />
+            <Ionicons name="trash-outline" size={24} color="#f43f5e" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.personInfo}>
           <View style={[
             styles.avatar,
-            { backgroundColor: isDark ? '#3b82f6' : '#60a5fa' }
+            { backgroundColor: isDark ? '#22d3ee' : '#22d3ee' }
           ]}>
             <Text style={styles.avatarText}>
               {person.name.charAt(0).toUpperCase()}
@@ -113,9 +117,9 @@ export default function PersonDetailScreen() {
             {person.name}
           </Text>
 
-          {person.email && (
-            <Text style={[styles.email, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-              {person.email}
+          {person.phone && (
+            <Text style={[styles.phone, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+              {person.phone}
             </Text>
           )}
 
@@ -126,12 +130,22 @@ export default function PersonDetailScreen() {
               borderColor: isDark ? '#374151' : '#e5e7eb',
             }
           ]}>
-            <Text style={[styles.balanceLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.balanceCardLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               Current Balance
             </Text>
-            <Text style={[styles.balanceAmount, { color: balanceColor }]}>
-              {balanceText}
-            </Text>
+            <View style={styles.balanceRow}>
+              <Text style={[styles.balanceText, { color: balanceColor }]}>
+                {balanceLabel}{hasBalance ? ' ' : ''}
+              </Text>
+              {hasBalance && (
+                <CurrencyText
+                  amount={Math.abs(person.balance)}
+                  symbolSize={11}
+                  amountSize={28}
+                  color={balanceColor}
+                />
+              )}
+            </View>
             <Text style={[styles.transactionCount, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
             </Text>
@@ -149,7 +163,7 @@ export default function PersonDetailScreen() {
             style={styles.addTransactionButton}
             onPress={() => router.push(`/add-transaction?personId=${id}`)}
           >
-            <Ionicons name="add-circle" size={28} color="#3b82f6" />
+            <Ionicons name="add-circle" size={28} color="#22d3ee" />
           </TouchableOpacity>
         </View>
 
@@ -157,9 +171,10 @@ export default function PersonDetailScreen() {
           transactions={transactions}
           showPersonName={false}
           emptyMessage="No transactions yet. Add one to get started!"
+          onTransactionPress={(txn) => router.push(`/transaction/${txn.id}`)}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -212,7 +227,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
-  email: {
+  phone: {
     fontSize: 16,
     marginBottom: 20,
   },
@@ -223,14 +238,18 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  balanceLabel: {
+  balanceCardLabel: {
     fontSize: 14,
     marginBottom: 8,
   },
-  balanceAmount: {
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  balanceText: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 8,
   },
   transactionCount: {
     fontSize: 14,

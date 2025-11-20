@@ -22,7 +22,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { createTransaction } from '@/database/transactionsService';
+import { updateTransaction, getTransactionById } from '@/database/transactionsService';
 import { getAllPeople } from '@/database/peopleService';
 import type { Person } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -31,9 +31,9 @@ import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export default function AddTransactionModal() {
+export default function EditTransactionModal() {
   const router = useRouter();
-  const { personId } = useLocalSearchParams<{ personId?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
@@ -41,21 +41,20 @@ export default function AddTransactionModal() {
   const { t } = useLanguage();
 
   const [people, setPeople] = useState<Person[]>([]);
-  const [selectedPersonId, setSelectedPersonId] = useState<number>(
-    personId ? parseInt(personId) : 0
-  );
+  const [selectedPersonId, setSelectedPersonId] = useState<number>(0);
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'incoming' | 'outgoing'>('incoming');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(30);
 
   useEffect(() => {
-    loadPeople();
+    loadData();
     opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
     translateY.value = withSpring(0, { damping: 15 });
   }, []);
@@ -65,15 +64,29 @@ export default function AddTransactionModal() {
     transform: [{ translateY: translateY.value }],
   }));
 
-  const loadPeople = async () => {
+  const loadData = async () => {
     try {
-      const allPeople = await getAllPeople();
+      const [allPeople, transaction] = await Promise.all([
+        getAllPeople(),
+        getTransactionById(parseInt(id)),
+      ]);
+
       setPeople(allPeople);
-      if (allPeople.length > 0 && !selectedPersonId) {
-        setSelectedPersonId(allPeople[0].id);
+
+      if (transaction) {
+        setSelectedPersonId(transaction.personId);
+        setAmount(transaction.amount.toString());
+        setType(transaction.type);
+        setDescription(transaction.description);
+        setCategory(transaction.category || '');
+        setDate(transaction.date);
       }
+
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error loading people:', error);
+      console.error('Error loading transaction:', error);
+      Alert.alert('Error', 'Failed to load transaction');
+      setIsLoading(false);
     }
   };
 
@@ -94,7 +107,7 @@ export default function AddTransactionModal() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSubmitting(true);
     try {
-      await createTransaction({
+      await updateTransaction(parseInt(id), {
         personId: selectedPersonId,
         amount: parseFloat(amount),
         type,
@@ -105,8 +118,8 @@ export default function AddTransactionModal() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (error) {
-      console.error('Error creating transaction:', error);
-      Alert.alert('Error', 'Failed to add transaction');
+      console.error('Error updating transaction:', error);
+      Alert.alert('Error', 'Failed to update transaction');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setIsSubmitting(false);
     }
@@ -117,6 +130,18 @@ export default function AddTransactionModal() {
     router.back();
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+            Loading...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (people.length === 0) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -125,7 +150,7 @@ export default function AddTransactionModal() {
             <Ionicons name="close" size={28} color={theme.text} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: theme.text }]}>
-            {t('add_transaction')}
+            Edit Transaction
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -156,7 +181,7 @@ export default function AddTransactionModal() {
             <Ionicons name="close" size={28} color={theme.text} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: theme.text }]}>
-            {t('add_transaction')}
+            Edit Transaction
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -399,7 +424,7 @@ export default function AddTransactionModal() {
             >
               {isSubmitting ? (
                 <Text style={[styles.buttonText, { color: '#ffffff' }]}>
-                  Saving...
+                  Updating...
                 </Text>
               ) : (
                 <>
@@ -423,6 +448,14 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: Typography.sizes.base,
   },
   header: {
     flexDirection: 'row',

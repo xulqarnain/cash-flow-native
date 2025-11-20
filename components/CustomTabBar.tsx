@@ -1,0 +1,188 @@
+import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/contexts/ThemeContext';
+import { Colors, BorderRadius, Shadows } from '@/constants/Theme';
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
+  const { theme: appTheme, getTabBarStyle } = useAppTheme();
+  const tabBarStyle = getTabBarStyle();
+
+  const renderTabBarContent = () => (
+    <View style={styles.tabsContainer}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        const onLongPress = () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        // Icon mapping
+        const iconName = (() => {
+          switch (route.name) {
+            case 'index':
+              return isFocused ? 'home' : 'home-outline';
+            case 'payments':
+              return isFocused ? 'wallet' : 'wallet-outline';
+            case 'expenses':
+              return isFocused ? 'receipt' : 'receipt-outline';
+            case 'salaries':
+              return isFocused ? 'cash' : 'cash-outline';
+            case 'history':
+              return isFocused ? 'time' : 'time-outline';
+            case 'settings':
+              return isFocused ? 'settings' : 'settings-outline';
+            default:
+              return 'ellipse';
+          }
+        })();
+
+        const scale = useSharedValue(1);
+
+        const animatedStyle = useAnimatedStyle(() => ({
+          transform: [{ scale: scale.value }],
+        }));
+
+        const handlePressIn = () => {
+          scale.value = withSpring(0.85, { damping: 10 });
+        };
+
+        const handlePressOut = () => {
+          scale.value = withSpring(1, { damping: 10 });
+        };
+
+        return (
+          <AnimatedTouchableOpacity
+            key={route.name}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={[styles.tab, animatedStyle]}
+          >
+            {isFocused ? (
+              <View
+                style={[
+                  styles.activeTab,
+                  { backgroundColor: theme.primary },
+                  Shadows.md
+                ]}
+              >
+                <Ionicons name={iconName as any} size={20} color="#ffffff" />
+              </View>
+            ) : (
+              <View style={styles.inactiveTab}>
+                <Ionicons
+                  name={iconName as any}
+                  size={20}
+                  color={theme.textTertiary}
+                />
+              </View>
+            )}
+          </AnimatedTouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
+  return (
+    <View style={styles.container} pointerEvents="box-none">
+      <View style={[
+        styles.floatingWrapper,
+        { backgroundColor: theme.surface },
+        Shadows.lg
+      ]}>
+        <View style={[
+          styles.tabBar,
+          tabBarStyle,
+          { backgroundColor: theme.surface, borderColor: theme.border }
+        ]}>
+          {renderTabBarContent()}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    paddingHorizontal: 16,
+    zIndex: 100,
+    elevation: 10,
+  },
+  floatingWrapper: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  tabBar: {
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    minHeight: 72,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTab: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inactiveTab: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

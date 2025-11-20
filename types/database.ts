@@ -3,7 +3,7 @@
 export interface Person {
   id: number;
   name: string;
-  email?: string;
+  phone?: string;
   createdAt: string;
 }
 
@@ -35,5 +35,24 @@ export interface TransactionWithPerson extends Transaction {
   personName: string;
 }
 
+export interface Expense {
+  id: number;
+  description: string;
+  amount: number;
+  date: string;
+  category?: string;
+  createdAt: string;
+}
+
+export interface Salary {
+  id: number;
+  description: string;
+  amount: number;
+  date: string;
+  status: 'received' | 'not_received' | 'pending';
+  createdAt: string;
+}
+
 export type TransactionType = 'incoming' | 'outgoing';
+export type SalaryStatus = 'received' | 'not_received' | 'pending';
 export type SortOrder = 'asc' | 'desc';

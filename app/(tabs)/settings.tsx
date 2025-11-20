@@ -1,23 +1,36 @@
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
+import { useLanguage, type Language } from '@/contexts/LanguageContext';
+import { useCurrency, currencies, type Currency } from '@/contexts/CurrencyContext';
+import { useAppTheme, themeOptions, type AppTheme } from '@/contexts/ThemeContext';
+import { ThemedBackground } from '@/components/ThemedBackground';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getAllPeople } from '@/database/peopleService';
+import { Colors, Shadows, BorderRadius } from '@/constants/Theme';
+import { getAllPeople, createPerson } from '@/database/peopleService';
 import { getAllTransactions, createTransaction } from '@/database/transactionsService';
-import { createPerson } from '@/database/peopleService';
+import { getAllExpenses, createExpense } from '@/database/expensesService';
+import { getAllSalaries, createSalary } from '@/database/salariesService';
 import { resetDatabase } from '@/database/init';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const themeColors = isDark ? Colors.dark : Colors.light;
+  const { language, setLanguage, t } = useLanguage();
+  const { currency, setCurrency } = useCurrency();
+  const { theme, setTheme } = useAppTheme();
 
   const handleExportCSV = async () => {
     try {
-      const [people, transactions] = await Promise.all([
+      const [people, transactions, expenses, salaries] = await Promise.all([
         getAllPeople(),
         getAllTransactions(),
+        getAllExpenses(),
+        getAllSalaries(),
       ]);
 
       // Create CSV content
@@ -25,15 +38,29 @@ export default function SettingsScreen() {
 
       // People CSV
       csvContent += '=== PEOPLE ===\n';
-      csvContent += 'ID,Name,Email,Created At\n';
+      csvContent += 'ID,Name,Phone,Created At\n';
       people.forEach(person => {
-        csvContent += `${person.id},"${person.name}","${person.email || ''}","${person.createdAt}"\n`;
+        csvContent += `${person.id},"${person.name}","${person.phone || ''}","${person.createdAt}"\n`;
       });
 
       csvContent += '\n=== TRANSACTIONS ===\n';
       csvContent += 'ID,Person ID,Person Name,Amount,Type,Description,Category,Date,Created At\n';
       transactions.forEach(txn => {
         csvContent += `${txn.id},${txn.personId},"${txn.personName}",${txn.amount},"${txn.type}","${txn.description}","${txn.category || ''}","${txn.date}","${txn.createdAt}"\n`;
+      });
+
+      // Expenses CSV
+      csvContent += '\n=== EXPENSES ===\n';
+      csvContent += 'ID,Description,Amount,Date,Category,Created At\n';
+      expenses.forEach(expense => {
+        csvContent += `${expense.id},"${expense.description}",${expense.amount},"${expense.date}","${expense.category || ''}","${expense.createdAt}"\n`;
+      });
+
+      // Salaries CSV
+      csvContent += '\n=== SALARIES ===\n';
+      csvContent += 'ID,Description,Amount,Date,Status,Created At\n';
+      salaries.forEach(salary => {
+        csvContent += `${salary.id},"${salary.description}",${salary.amount},"${salary.date}","${salary.status}","${salary.createdAt}"\n`;
       });
 
       // Save to file
@@ -56,7 +83,7 @@ export default function SettingsScreen() {
   const handleImportCSV = async () => {
     Alert.alert(
       'Import CSV',
-      'This feature will import people and transactions from a CSV file. Make sure your CSV follows the export format.',
+      'This feature will import people, transactions, expenses, and salaries from a CSV file. Make sure your CSV follows the export format.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Continue', onPress: performImport },
@@ -82,6 +109,8 @@ export default function SettingsScreen() {
       let section = '';
       let importedPeople = 0;
       let importedTransactions = 0;
+      let importedExpenses = 0;
+      let importedSalaries = 0;
 
       for (const line of lines) {
         if (line.includes('=== PEOPLE ===')) {
@@ -89,6 +118,12 @@ export default function SettingsScreen() {
           continue;
         } else if (line.includes('=== TRANSACTIONS ===')) {
           section = 'transactions';
+          continue;
+        } else if (line.includes('=== EXPENSES ===')) {
+          section = 'expenses';
+          continue;
+        } else if (line.includes('=== SALARIES ===')) {
+          section = 'salaries';
           continue;
         } else if (line.includes('ID,') || line.trim() === '' || line.includes('Export Date:')) {
           continue;
@@ -98,8 +133,8 @@ export default function SettingsScreen() {
           const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
           if (parts && parts.length >= 3) {
             const name = parts[1].replace(/"/g, '');
-            const email = parts[2].replace(/"/g, '') || undefined;
-            await createPerson(name, email);
+            const phone = parts[2].replace(/"/g, '') || undefined;
+            await createPerson(name, phone);
             importedPeople++;
           }
         } else if (section === 'transactions') {
@@ -122,12 +157,44 @@ export default function SettingsScreen() {
             });
             importedTransactions++;
           }
+        } else if (section === 'expenses') {
+          const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
+          if (parts && parts.length >= 5) {
+            const description = parts[1].replace(/"/g, '');
+            const amount = parseFloat(parts[2]);
+            const date = parts[3].replace(/"/g, '');
+            const category = parts[4].replace(/"/g, '') || undefined;
+
+            await createExpense({
+              description,
+              amount,
+              date,
+              category,
+            });
+            importedExpenses++;
+          }
+        } else if (section === 'salaries') {
+          const parts = line.match(/(?:[^,"]+|"[^"]*")+/g);
+          if (parts && parts.length >= 5) {
+            const description = parts[1].replace(/"/g, '');
+            const amount = parseFloat(parts[2]);
+            const date = parts[3].replace(/"/g, '');
+            const status = parts[4].replace(/"/g, '') as 'received' | 'not_received' | 'pending';
+
+            await createSalary({
+              description,
+              amount,
+              date,
+              status,
+            });
+            importedSalaries++;
+          }
         }
       }
 
       Alert.alert(
         'Import Complete',
-        `Imported ${importedPeople} people and ${importedTransactions} transactions`
+        `Imported:\n${importedPeople} people\n${importedTransactions} transactions\n${importedExpenses} expenses\n${importedSalaries} salaries`
       );
     } catch (error) {
       console.error('Error importing CSV:', error);
@@ -159,18 +226,155 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ThemedBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Settings
+          <Text style={[styles.title, { color: themeColors.text }]}>
+            {t('settings')}
           </Text>
+        </View>
+
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+            {t('language')}
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.settingItem,
+              {
+                backgroundColor: themeColors.surface,
+                borderColor: language === 'en' ? themeColors.primary : themeColors.border,
+                borderWidth: language === 'en' ? 2 : 1,
+              }
+            ]}
+            onPress={() => setLanguage('en')}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="language-outline" size={24} color={themeColors.primary} />
+              <View style={styles.settingText}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
+                  {t('english')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
+                  English
+                </Text>
+              </View>
+            </View>
+            {language === 'en' && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.settingItem,
+              {
+                backgroundColor: themeColors.surface,
+                borderColor: language === 'ur' ? themeColors.primary : themeColors.border,
+                borderWidth: language === 'ur' ? 2 : 1,
+              }
+            ]}
+            onPress={() => setLanguage('ur')}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="language-outline" size={24} color="#ec4899" />
+              <View style={styles.settingText}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
+                  {t('roman_urdu')}
+                </Text>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
+                  Roman Urdu
+                </Text>
+              </View>
+            </View>
+            {language === 'ur' && <Ionicons name="checkmark-circle" size={24} color="#ec4899" />}
+          </TouchableOpacity>
+        </View>
+
+        {/* Currency Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+            Currency
+          </Text>
+
+          {currencies.map((curr) => (
+            <TouchableOpacity
+              key={curr.code}
+              style={[
+                styles.settingItem,
+                {
+                  backgroundColor: themeColors.surface,
+                  borderColor: currency === curr.code ? themeColors.primary : themeColors.border,
+                  borderWidth: currency === curr.code ? 2 : 1,
+                }
+              ]}
+              onPress={() => setCurrency(curr.code)}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="cash-outline" size={24} color="#10b981" />
+                <View style={styles.settingText}>
+                  <Text style={[styles.settingTitle, { color: themeColors.text }]}>
+                    {curr.symbol} - {curr.name}
+                  </Text>
+                </View>
+              </View>
+              {currency === curr.code && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Theme Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+            Theme
+          </Text>
+
+          {themeOptions.map((themeOption) => (
+            <TouchableOpacity
+              key={themeOption.id}
+              style={[
+                styles.settingItem,
+                {
+                  backgroundColor: themeColors.surface,
+                  borderColor: theme === themeOption.id ? themeColors.primary : themeColors.border,
+                  borderWidth: theme === themeOption.id ? 2 : 1,
+                }
+              ]}
+              onPress={() => setTheme(themeOption.id)}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons
+                  name={
+                    themeOption.id === 'gradient-black' ? 'color-filter-outline' :
+                    themeOption.id === 'glass-blur' ? 'sparkles-outline' :
+                    'square-outline'
+                  }
+                  size={24}
+                  color={
+                    themeOption.id === 'gradient-black' ? '#8b5cf6' :
+                    themeOption.id === 'glass-blur' ? themeColors.primary :
+                    '#ffffff'
+                  }
+                />
+                <View style={styles.settingText}>
+                  <Text style={[styles.settingTitle, { color: themeColors.text }]}>
+                    {themeOption.name}
+                  </Text>
+                  <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
+                    {themeOption.description}
+                  </Text>
+                </View>
+              </View>
+              {theme === themeOption.id && <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />}
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Data Management Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Data Management
           </Text>
 
@@ -178,32 +382,32 @@ export default function SettingsScreen() {
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border,
               }
             ]}
             onPress={handleExportCSV}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="download-outline" size={24} color="#3b82f6" />
+              <Ionicons name="download-outline" size={24} color="#22d3ee" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   Export Data (CSV)
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Export all people and transactions
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: isDark ? '#374151' : '#e5e7eb',
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border,
               }
             ]}
             onPress={handleImportCSV}
@@ -211,21 +415,21 @@ export default function SettingsScreen() {
             <View style={styles.settingLeft}>
               <Ionicons name="cloud-upload-outline" size={24} color="#10b981" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+                <Text style={[styles.settingTitle, { color: themeColors.text }]}>
                   Import Data (CSV)
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Import people and transactions from CSV
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: '#ef4444' }]}>
+          <Text style={[styles.sectionTitle, { color: '#f43f5e' }]}>
             Danger Zone
           </Text>
 
@@ -233,53 +437,57 @@ export default function SettingsScreen() {
             style={[
               styles.settingItem,
               {
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                borderColor: '#ef4444',
+                backgroundColor: themeColors.surface,
+                borderColor: '#f43f5e',
                 borderWidth: 1,
               }
             ]}
             onPress={handleResetDatabase}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="trash-outline" size={24} color="#ef4444" />
+              <Ionicons name="trash-outline" size={24} color="#f43f5e" />
               <View style={styles.settingText}>
-                <Text style={[styles.settingTitle, { color: '#ef4444' }]}>
+                <Text style={[styles.settingTitle, { color: '#f43f5e' }]}>
                   Reset Database
                 </Text>
-                <Text style={[styles.settingDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                <Text style={[styles.settingDescription, { color: themeColors.textSecondary }]}>
                   Delete all data permanently
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ef4444" />
+            <Ionicons name="chevron-forward" size={20} color="#f43f5e" />
           </TouchableOpacity>
         </View>
 
         {/* About Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             About
           </Text>
           <View style={[
             styles.aboutCard,
             {
-              backgroundColor: isDark ? '#1f2937' : '#ffffff',
-              borderColor: isDark ? '#374151' : '#e5e7eb',
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
             }
           ]}>
-            <Text style={[styles.aboutTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
+            <Text style={[styles.aboutTitle, { color: themeColors.text }]}>
               Cash Flow Tracker
             </Text>
-            <Text style={[styles.aboutVersion, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.aboutVersion, { color: themeColors.textSecondary }]}>
               Version 1.0.0
             </Text>
-            <Text style={[styles.aboutDescription, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+            <Text style={[styles.aboutDescription, { color: themeColors.textSecondary }]}>
               Track money owed to and by specific individuals with ease.
+            </Text>
+            <Text style={[styles.aboutCredit, { color: themeColors.textSecondary }]}>
+              Built with ❤️ By Xulqarnain
             </Text>
           </View>
         </View>
       </ScrollView>
-    </View>
+      </SafeAreaView>
+    </ThemedBackground>
   );
 }
 
@@ -289,6 +497,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 120,
   },
   header: {
     marginBottom: 24,
@@ -349,5 +558,12 @@ const styles = StyleSheet.create({
   aboutDescription: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  aboutCredit: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });

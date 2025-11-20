@@ -2,6 +2,8 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import type { Transaction, TransactionWithPerson } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { CurrencyText } from './CurrencyText';
+import { Colors, Shadows, BorderRadius, Spacing } from '@/constants/Theme';
 
 interface TransactionListProps {
   transactions: Transaction[] | TransactionWithPerson[];
@@ -18,11 +20,12 @@ export function TransactionList({
 }: TransactionListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const themeColors = isDark ? Colors.dark : Colors.light;
 
   const renderItem = ({ item }: { item: Transaction | TransactionWithPerson }) => {
     const isIncoming = item.type === 'incoming';
     const icon = isIncoming ? 'arrow-down-circle' : 'arrow-up-circle';
-    const amountColor = isIncoming ? '#10b981' : '#ef4444';
+    const amountColor = isIncoming ? themeColors.success : themeColors.danger;
     const amountPrefix = isIncoming ? '+' : '-';
 
     const date = new Date(item.date);
@@ -39,9 +42,10 @@ export function TransactionList({
         style={[
           styles.transactionItem,
           {
-            backgroundColor: isDark ? '#1f2937' : '#ffffff',
-            borderColor: isDark ? '#374151' : '#e5e7eb',
-          }
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+          },
+          Shadows.base
         ]}
         onPress={() => onTransactionPress?.(item)}
         activeOpacity={0.7}
@@ -54,14 +58,14 @@ export function TransactionList({
         <View style={styles.details}>
           <Text style={[
             styles.description,
-            { color: isDark ? '#f9fafb' : '#111827' }
+            { color: themeColors.text }
           ]}>
             {item.description}
           </Text>
           {personName && (
             <Text style={[
               styles.personName,
-              { color: isDark ? '#9ca3af' : '#6b7280' }
+              { color: themeColors.textSecondary }
             ]}>
               {personName}
             </Text>
@@ -69,16 +73,16 @@ export function TransactionList({
           <View style={styles.metaRow}>
             <Text style={[
               styles.date,
-              { color: isDark ? '#9ca3af' : '#6b7280' }
+              { color: themeColors.textSecondary }
             ]}>
               {formattedDate}
             </Text>
             {item.category && (
               <>
-                <Text style={[styles.separator, { color: isDark ? '#9ca3af' : '#6b7280' }]}>•</Text>
+                <Text style={[styles.separator, { color: themeColors.textSecondary }]}>•</Text>
                 <Text style={[
                   styles.category,
-                  { color: isDark ? '#9ca3af' : '#6b7280' }
+                  { color: themeColors.textSecondary }
                 ]}>
                   {item.category}
                 </Text>
@@ -87,9 +91,17 @@ export function TransactionList({
           </View>
         </View>
 
-        <Text style={[styles.amount, { color: amountColor }]}>
-          {amountPrefix}${item.amount.toFixed(2)}
-        </Text>
+        <View style={styles.amountContainer}>
+          <Text style={[styles.amountPrefix, { color: amountColor }]}>
+            {amountPrefix}
+          </Text>
+          <CurrencyText
+            amount={item.amount}
+            symbolSize={9}
+            amountSize={18}
+            color={amountColor}
+          />
+        </View>
       </TouchableOpacity>
     );
   };
@@ -99,11 +111,11 @@ export function TransactionList({
       <Ionicons
         name="document-text-outline"
         size={64}
-        color={isDark ? '#4b5563' : '#d1d5db'}
+        color={themeColors.textTertiary}
       />
       <Text style={[
         styles.emptyText,
-        { color: isDark ? '#9ca3af' : '#6b7280' }
+        { color: themeColors.textSecondary }
       ]}>
         {emptyMessage}
       </Text>
@@ -123,26 +135,23 @@ export function TransactionList({
 
 const styles = StyleSheet.create({
   list: {
-    padding: 16,
+    padding: Spacing.base,
+    paddingBottom: 100, // Space for footer menu
   },
   emptyList: {
     flex: 1,
+    paddingBottom: 100, // Space for footer menu
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: BorderRadius.base,
     borderWidth: 1,
-    padding: 12,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: Spacing.base,
+    marginBottom: Spacing.sm,
   },
   iconContainer: {
-    marginRight: 12,
+    marginRight: Spacing.base,
   },
   details: {
     flex: 1,
@@ -170,10 +179,15 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 12,
   },
-  amount: {
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginLeft: Spacing.base,
+  },
+  amountPrefix: {
     fontSize: 18,
     fontWeight: '700',
-    marginLeft: 12,
+    marginRight: 2,
   },
   emptyContainer: {
     flex: 1,
@@ -183,6 +197,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    marginTop: 16,
+    marginTop: Spacing.base,
   },
 });

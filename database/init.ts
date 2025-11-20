@@ -11,14 +11,18 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 
   db = await SQLite.openDatabaseAsync(DB_NAME);
 
+  // Enable WAL mode
+  await db.execAsync('PRAGMA journal_mode = WAL;');
+
+  // Check if we need to migrate from email to phone
+  await migrateEmailToPhone(db);
+
   // Create tables if they don't exist
   await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-
     CREATE TABLE IF NOT EXISTS people (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT,
+      phone TEXT,
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -37,9 +41,79 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     CREATE INDEX IF NOT EXISTS idx_transactions_personId ON transactions(personId);
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      category TEXT,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+    CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+
+    CREATE TABLE IF NOT EXISTS salaries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('received', 'not_received', 'pending')),
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_salaries_date ON salaries(date);
+    CREATE INDEX IF NOT EXISTS idx_salaries_status ON salaries(status);
   `);
 
   return db;
+}
+
+async function migrateEmailToPhone(database: SQLite.SQLiteDatabase): Promise<void> {
+  try {
+    // Check if people table exists with email column
+    const result = await database.getAllAsync<{ name: string }>(
+      "SELECT name FROM pragma_table_info('people') WHERE name='email'"
+    );
+
+    if (result.length > 0) {
+      // Email column exists, need to migrate
+      console.log('Migrating people table from email to phone...');
+
+      // Disable foreign key constraints temporarily
+      await database.execAsync('PRAGMA foreign_keys = OFF;');
+
+      // Create new table with phone column
+      await database.execAsync(`
+        CREATE TABLE people_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          phone TEXT,
+          createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Copy data from old table to new table (email -> phone)
+      await database.execAsync(`
+        INSERT INTO people_new (id, name, phone, createdAt)
+        SELECT id, name, email, createdAt FROM people;
+      `);
+
+      // Drop old table
+      await database.execAsync('DROP TABLE people;');
+
+      // Rename new table to people
+      await database.execAsync('ALTER TABLE people_new RENAME TO people;');
+
+      // Re-enable foreign key constraints
+      await database.execAsync('PRAGMA foreign_keys = ON;');
+
+      console.log('Migration completed successfully');
+    }
+  } catch (error) {
+    console.log('No migration needed or table does not exist yet:', error);
+  }
 }
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
@@ -61,6 +135,8 @@ export async function resetDatabase(): Promise<void> {
   await database.execAsync(`
     DROP TABLE IF EXISTS transactions;
     DROP TABLE IF EXISTS people;
+    DROP TABLE IF EXISTS expenses;
+    DROP TABLE IF EXISTS salaries;
   `);
   await closeDatabase();
   await initDatabase();

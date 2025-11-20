@@ -1,118 +1,177 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import type { PersonWithBalance } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { CurrencyText } from './CurrencyText';
+import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 
 interface PersonCardProps {
   person: PersonWithBalance;
   onPress?: () => void;
 }
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export function PersonCard({ person, onPress }: PersonCardProps) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
+  const themeColors = isDark ? Colors.dark : Colors.light;
+
+  const scale = useSharedValue(1);
 
   const balanceColor = person.balance > 0
-    ? '#10b981' // green for positive (they owe you)
+    ? theme.success
     : person.balance < 0
-    ? '#ef4444' // red for negative (you owe them)
-    : isDark ? '#9ca3af' : '#6b7280'; // gray for zero
+    ? theme.danger
+    : theme.textTertiary;
 
-  const balanceText = person.balance > 0
-    ? `Owes you $${person.balance.toFixed(2)}`
+  const balanceLabel = person.balance > 0
+    ? 'Owes you'
     : person.balance < 0
-    ? `You owe $${Math.abs(person.balance).toFixed(2)}`
+    ? 'You owe'
     : 'No balance';
 
-  const card = (
-    <View style={[
-      styles.card,
-      {
-        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-        borderColor: isDark ? '#374151' : '#e5e7eb',
-      }
-    ]}>
-      <View style={styles.header}>
-        <Text style={[
-          styles.name,
-          { color: isDark ? '#f9fafb' : '#111827' }
-        ]}>
-          {person.name}
-        </Text>
-        {person.email && (
-          <Text style={[
-            styles.email,
-            { color: isDark ? '#9ca3af' : '#6b7280' }
-          ]}>
-            {person.email}
+  const hasBalance = person.balance !== 0;
+
+  const iconBgColor = person.balance > 0
+    ? themeColors.success
+    : person.balance < 0
+    ? themeColors.danger
+    : isDark ? '#0e7490' : '#06b6d4';
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.97, { damping: 15 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15 });
+  };
+
+  const handlePress = () => {
+    router.push(`/person/${person.id}`);
+  };
+
+  return (
+    <AnimatedTouchable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={0.9}
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          borderWidth: 1
+        },
+        Shadows.base,
+        animatedStyle,
+      ]}
+    >
+      <View style={styles.content}>
+        <View
+          style={[styles.avatar, { backgroundColor: iconBgColor }]}
+        >
+          <Ionicons name="person" size={24} color="#ffffff" />
+        </View>
+
+        <View style={styles.info}>
+          <Text style={[styles.name, { color: theme.text }]}>
+            {person.name}
           </Text>
-        )}
+          {person.phone && (
+            <Text style={[styles.phone, { color: theme.textTertiary }]}>
+              📞 {person.phone}
+            </Text>
+          )}
+        </View>
+
+        <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
       </View>
 
       <View style={styles.footer}>
-        <Text style={[styles.balance, { color: balanceColor }]}>
-          {balanceText}
-        </Text>
-        <Text style={[
-          styles.transactionCount,
-          { color: isDark ? '#9ca3af' : '#6b7280' }
-        ]}>
-          {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
-        </Text>
+        <View>
+          <View style={styles.balanceRow}>
+            <Text style={[styles.balanceLabel, { color: balanceColor }]}>
+              {balanceLabel}{hasBalance ? ' ' : ''}
+            </Text>
+            {hasBalance && (
+              <CurrencyText
+                amount={Math.abs(person.balance)}
+                symbolSize={9}
+                amountSize={Typography.sizes.base}
+                color={balanceColor}
+              />
+            )}
+          </View>
+          <Text style={[styles.transactionCount, { color: theme.textTertiary }]}>
+            {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-        {card}
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <Link href={`/person/${person.id}`} asChild>
-      <TouchableOpacity activeOpacity={0.7}>
-        {card}
-      </TouchableOpacity>
-    </Link>
+    </AnimatedTouchable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.base,
+    marginBottom: Spacing.md,
   },
-  header: {
-    marginBottom: 12,
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  info: {
+    flex: 1,
   },
   name: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: Typography.sizes.lg,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: Spacing.xs,
   },
-  email: {
-    fontSize: 14,
+  phone: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: Typography.weights.medium,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingLeft: 60,
   },
-  balance: {
-    fontSize: 16,
-    fontWeight: '700',
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Spacing.xs,
+  },
+  balanceLabel: {
+    fontSize: Typography.sizes.base,
+    fontWeight: Typography.weights.bold,
   },
   transactionCount: {
-    fontSize: 12,
+    fontSize: Typography.sizes.xs,
+    fontWeight: Typography.weights.medium,
   },
 });
