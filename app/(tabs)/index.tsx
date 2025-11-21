@@ -129,7 +129,7 @@ export default function DashboardScreen() {
           </View>
 
           {/* People List */}
-          <View style={[styles.section, { paddingBottom: Platform.OS === 'ios' ? 120 : 108 }]}>
+          <View style={[styles.section, { marginBottom: Spacing.xl, paddingBottom: Platform.OS === 'ios' ? 120 : 108 }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
               {t('people')} ({people.length})
             </Text>

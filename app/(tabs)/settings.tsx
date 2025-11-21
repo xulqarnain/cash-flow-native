@@ -4,13 +4,12 @@ import { Colors } from '@/constants/Theme';
 import { currencies, useCurrency } from '@/contexts/CurrencyContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { themeOptions, useAppTheme } from '@/contexts/ThemeContext';
-import { createExpense, getAllExpenses } from '@/database/expensesService';
-import { resetDatabase } from '@/database/init';
 import { createPerson, getAllPeople } from '@/database/peopleService';
 import { createSalary, getAllSalaries } from '@/database/salariesService';
 import { createTransaction, getAllTransactions } from '@/database/transactionsService';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -380,13 +379,13 @@ export default function SettingsScreen() {
               }
             ]}>
               <Text style={[styles.aboutTitle, { color: themeColors.text }]}>
-                Cash Flow Tracker
+                Cash Flow
               </Text>
               <Text style={[styles.aboutVersion, { color: themeColors.textSecondary }]}>
-                Version 1.0.0
+                Version {Constants.expoConfig?.version || '1.0.0'}
               </Text>
               <Text style={[styles.aboutDescription, { color: themeColors.textSecondary }]}>
-                Track money owed to and by specific individuals with ease.
+                Track money owed to and by specific individuals, expenses or salaries with ease.
               </Text>
               <Text style={[styles.aboutCredit, { color: themeColors.textSecondary }]}>
                 Built with ❤️ By Xulqarnain
