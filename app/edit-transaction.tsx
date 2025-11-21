@@ -1,33 +1,33 @@
-import { useState, useEffect } from 'react';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/Theme';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getAllPeople } from '@/database/peopleService';
+import { getTransactionById, updateTransaction } from '@/database/transactionsService';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import type { Person } from '@/types/database';
+import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
+import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-  Easing,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { updateTransaction, getTransactionById } from '@/database/transactionsService';
-import { getAllPeople } from '@/database/peopleService';
-import type { Person } from '@/types/database';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -85,22 +85,22 @@ export default function EditTransactionModal() {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading transaction:', error);
-      Alert.alert('Error', 'Failed to load transaction');
+      Alert.alert(t('error'), 'Failed to load transaction');
       setIsLoading(false);
     }
   };
 
   const handleSubmit = async () => {
     if (!selectedPersonId) {
-      Alert.alert('Error', 'Please select a person');
+      Alert.alert(t('error'), t('select_person_error'));
       return;
     }
     if (!amount || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      Alert.alert(t('error'), t('invalid_amount_error'));
       return;
     }
     if (!description.trim()) {
-      Alert.alert('Error', 'Please enter a description');
+      Alert.alert(t('error'), t('enter_description_error'));
       return;
     }
 
@@ -119,7 +119,7 @@ export default function EditTransactionModal() {
       router.back();
     } catch (error) {
       console.error('Error updating transaction:', error);
-      Alert.alert('Error', 'Failed to update transaction');
+      Alert.alert(t('error'), t('update_transaction_error'));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setIsSubmitting(false);
     }
@@ -135,7 +135,7 @@ export default function EditTransactionModal() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading...
+            {t('loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -150,7 +150,7 @@ export default function EditTransactionModal() {
             <Ionicons name="close" size={28} color={theme.text} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: theme.text }]}>
-            Edit Transaction
+            {t('edit_transaction_title')}
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -159,10 +159,10 @@ export default function EditTransactionModal() {
             <Text style={{ fontSize: 48 }}>👥</Text>
           </View>
           <Text style={[styles.emptyText, { color: theme.text }]}>
-            No people added yet
+            {t('no_people')}
           </Text>
           <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
-            Add a person first to create transactions
+            {t('add_person_first')}
           </Text>
         </View>
       </SafeAreaView>
@@ -181,7 +181,7 @@ export default function EditTransactionModal() {
             <Ionicons name="close" size={28} color={theme.text} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: theme.text }]}>
-            Edit Transaction
+            {t('edit_transaction_title')}
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -280,7 +280,7 @@ export default function EditTransactionModal() {
             {/* Person Picker */}
             <View style={styles.formGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>
-                Person *
+                {t('person_required')}
               </Text>
               <View style={[
                 styles.inputContainer,
@@ -356,7 +356,7 @@ export default function EditTransactionModal() {
                 <Ionicons name="pricetag-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
-                  placeholder="e.g., Loan, Payment, Gift"
+                  placeholder={t('category_placeholder')}
                   placeholderTextColor={theme.textTertiary}
                   value={category}
                   onChangeText={setCategory}
@@ -416,15 +416,15 @@ export default function EditTransactionModal() {
                   backgroundColor: isSubmitting
                     ? '#9ca3af'
                     : type === 'incoming'
-                    ? themeColors.success
-                    : themeColors.danger
+                      ? themeColors.success
+                      : themeColors.danger
                 },
                 Shadows.md
               ]}
             >
               {isSubmitting ? (
                 <Text style={[styles.buttonText, { color: '#ffffff' }]}>
-                  Updating...
+                  {t('updating')}
                 </Text>
               ) : (
                 <>

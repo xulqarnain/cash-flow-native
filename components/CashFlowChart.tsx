@@ -1,71 +1,50 @@
-import { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withDelay,
-  Easing,
-  withTiming,
-} from 'react-native-reanimated';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/Theme';
 import type { ChartDataPoint } from '@/database/transactionsService';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Dimensions, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 
 interface CashFlowChartProps {
   data: ChartDataPoint[];
+  style?: ViewStyle;
 }
 
-export function CashFlowChart({ data }: CashFlowChartProps) {
+export function CashFlowChart({ data, style }: CashFlowChartProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
   const screenWidth = Dimensions.get('window').width;
 
-  const scale = useSharedValue(0.95);
-  const opacity = useSharedValue(0);
+  const chartConfig = {
+    backgroundGradientFrom: theme.surface,
+    backgroundGradientTo: theme.surface,
+    color: (opacity = 1) => isDark ? `rgba(96, 165, 250, ${opacity})` : `rgba(37, 99, 235, ${opacity})`, // Blue
+    labelColor: (opacity = 1) => theme.textSecondary,
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false,
+    decimalPlaces: 0,
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: theme.surface
+    },
+    propsForBackgroundLines: {
+      strokeDasharray: "", // Solid lines
+      stroke: theme.border,
+      strokeWidth: 1,
+    }
+  };
 
-  useEffect(() => {
-    opacity.value = withDelay(
-      300,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-    scale.value = withDelay(
-      300,
-      withSpring(1, { damping: 15, stiffness: 150 })
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
-      <Animated.View style={[
-        styles.container,
-        {
-          backgroundColor: theme.surface,
-        },
-        Shadows.md,
-        animatedStyle,
-      ]}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          Cash Flow (Last 7 Days)
-        </Text>
-        <View style={styles.emptyState}>
-          <Text style={{ fontSize: 32, marginBottom: Spacing.sm }}>📊</Text>
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-            No transaction data available
-          </Text>
-        </View>
-      </Animated.View>
+      <View style={[styles.container, styles.emptyContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No data available</Text>
+      </View>
     );
   }
 
-  // Format dates for labels (show only last 3 characters, e.g., "15")
+  // Transform data for the chart
   const labels = data.map(d => {
     const date = new Date(d.date);
     return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -76,118 +55,91 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
     datasets: [
       {
         data: data.map(d => d.balance),
-        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // blue
-        strokeWidth: 3,
+        color: (opacity = 1) => isDark ? `rgba(96, 165, 250, ${opacity})` : `rgba(37, 99, 235, ${opacity})`,
+        strokeWidth: 2,
       },
     ],
   };
 
   return (
-    <Animated.View style={[
+    <View style={[
       styles.container,
       {
         backgroundColor: theme.surface,
+        borderColor: theme.border,
       },
-      Shadows.md,
-      animatedStyle,
+      Shadows.sm,
+      style
     ]}>
-      <Text style={[styles.title, { color: theme.text }]}>
-        Cash Flow Trend
-      </Text>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.text }]}>Cash Flow</Text>
+        <View style={styles.legend}>
+          <View style={[styles.dot, { backgroundColor: theme.primary }]} />
+          <Text style={[styles.legendText, { color: theme.textSecondary }]}>Net Income</Text>
+        </View>
+      </View>
 
       <LineChart
         data={chartData}
-        width={screenWidth - 64}
+        width={screenWidth - (Spacing.md * 2) - (Spacing.lg * 2)} // Adjust for container padding and screen margin
         height={220}
-        chartConfig={{
-          backgroundColor: theme.surface,
-          backgroundGradientFrom: theme.surface,
-          backgroundGradientTo: theme.surface,
-          decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
-          labelColor: (opacity = 1) => isDark ? `rgba(203, 213, 225, ${opacity})` : `rgba(71, 85, 105, ${opacity})`,
-          style: {
-            borderRadius: BorderRadius.lg,
-          },
-          propsForDots: {
-            r: '5',
-            strokeWidth: '3',
-            stroke: '#6366f1',
-            fill: '#ffffff',
-          },
-          propsForBackgroundLines: {
-            strokeDasharray: '',
-            stroke: theme.border,
-            strokeWidth: 1,
-          },
-        }}
+        chartConfig={chartConfig}
         bezier
         style={styles.chart}
         withInnerLines={true}
         withOuterLines={false}
         withVerticalLines={false}
         withHorizontalLines={true}
-        fromZero={false}
+        withVerticalLabels={true}
+        withHorizontalLabels={true}
+        yAxisLabel="$"
+        yAxisInterval={1}
       />
-
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
-          <Text style={[styles.legendText, { color: theme.textSecondary }]}>
-            In: ${data.reduce((sum, d) => sum + d.incoming, 0).toFixed(0)}
-          </Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#ef4444' }]} />
-          <Text style={[styles.legendText, { color: theme.textSecondary }]}>
-            Out: ${data.reduce((sum, d) => sum + d.outgoing, 0).toFixed(0)}
-          </Text>
-        </View>
-      </View>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    padding: Spacing.lg,
+    marginVertical: Spacing.md,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  title: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    marginBottom: Spacing.base,
-  },
-  chart: {
-    marginVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-  },
-  emptyState: {
-    paddingVertical: Spacing['3xl'],
+  emptyContainer: {
+    height: 200,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.medium,
+    fontSize: Typography.sizes.base,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontSize: Typography.sizes.base,
+    fontWeight: Typography.weights.semibold,
   },
   legend: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-  },
-  legendItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
   },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
   },
   legendText: {
     fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.semibold,
+  },
+  chart: {
+    marginRight: -16, // Adjust for chart padding
+    paddingRight: 0,
   },
 });

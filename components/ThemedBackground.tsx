@@ -1,7 +1,7 @@
+import { Colors } from '@/constants/Theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ReactNode } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Colors } from '@/constants/Theme';
 
 interface ThemedBackgroundProps {
   children: ReactNode;
@@ -13,7 +13,6 @@ export function ThemedBackground({ children, style }: ThemedBackgroundProps) {
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
 
-  // Clean, professional solid background - no gradients
   return (
     <View
       style={[

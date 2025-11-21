@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Language = 'en' | 'ur';
 
@@ -75,6 +75,28 @@ const translations: Translations = {
     'history': 'History',
     'search': 'Search',
     'no_transactions': 'No transactions yet',
+    'current_balance': 'Current Balance',
+    'delete_person_title': 'Delete Person',
+    'delete_person_message': 'Are you sure you want to delete {name}? All associated transactions will also be deleted.',
+    'loading': 'Loading...',
+    'no_transactions_start': 'No transactions yet. Add one to get started!',
+    'transactions_title': 'Transactions',
+    'transaction_details': 'Transaction Details',
+    'person_label': 'Person',
+    'delete_transaction_title': 'Delete Transaction',
+    'delete_transaction_message': 'Are you sure you want to delete this transaction?',
+    'error': 'Error',
+    'select_person_error': 'Please select a person',
+    'invalid_amount_error': 'Please enter a valid amount',
+    'enter_description_error': 'Please enter a description',
+    'add_transaction_error': 'Failed to add transaction',
+    'add_person_first': 'Add a person first to create transactions',
+    'saving': 'Saving...',
+    'person_required': 'Person *',
+    'category_placeholder': 'e.g., Loan, Payment, Gift',
+    'update_transaction_error': 'Failed to update transaction',
+    'edit_transaction_title': 'Edit Transaction',
+    'updating': 'Updating...',
   },
   ur: {
     // Dashboard
@@ -95,6 +117,28 @@ const translations: Translations = {
     'no_balance': 'Koi balance nahi',
     'transaction': 'transaction',
     'transactions': 'transactions',
+    'current_balance': 'Maujooda Balance',
+    'delete_person_title': 'Shakhs Delete Karo',
+    'delete_person_message': 'Kya aap waqai {name} ko delete karna chahte hain? Iski saari transactions bhi delete ho jayengi.',
+    'loading': 'Loading...',
+    'no_transactions_start': 'Abhi koi transaction nahi. Shuru karne ke liye + dabain.',
+    'transactions_title': 'Transactions',
+    'transaction_details': 'Transaction Ki Tafseel',
+    'person_label': 'Shakhs',
+    'delete_transaction_title': 'Transaction Delete Karo',
+    'delete_transaction_message': 'Kya aap waqai is transaction ko delete karna chahte hain?',
+    'error': 'Ghalti',
+    'select_person_error': 'Brah-e-karam shakhs muntakhib karein',
+    'invalid_amount_error': 'Brah-e-karam durust raqam darj karein',
+    'enter_description_error': 'Brah-e-karam tafseel darj karein',
+    'add_transaction_error': 'Transaction shamil karne mein nakami',
+    'add_person_first': 'Transaction shamil karne se pehle shakhs shamil karein',
+    'saving': 'Mehfooz ho raha hai...',
+    'person_required': 'Shakhs *',
+    'category_placeholder': 'Maslan: Qarz, Adaigi, Tohfa',
+    'update_transaction_error': 'Transaction update karne mein nakami',
+    'edit_transaction_title': 'Transaction Edit Karo',
+    'updating': 'Update ho raha hai...',
 
     // Actions
     'add_person': 'Naya Shakhs',

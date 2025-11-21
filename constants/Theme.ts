@@ -1,57 +1,63 @@
 export const Colors = {
   light: {
-    // Professional fintech palette - inspired by Revolut, Stripe, N26
-    primary: '#0066FF', // professional blue
-    primaryLight: '#3B82F6',
-    primaryDark: '#0052CC',
-    secondary: '#6B7280', // neutral gray
-    success: '#10B981', // emerald green for positive values
-    successLight: '#34D399',
-    danger: '#EF4444', // clean red for negative values
-    dangerLight: '#F87171',
-    warning: '#F59E0B', // amber
-    info: '#0EA5E9', // sky blue
+    // Clean, Professional Palette (Stripe/Apple style)
+    primary: '#2563EB', // Inter Blue - Trustworthy & Professional
+    primaryLight: '#60A5FA',
+    primaryDark: '#1E40AF',
 
-    background: '#FAFAFA', // light gray, easier on eyes than pure white
-    backgroundSecondary: '#F5F5F5',
-    surface: '#FFFFFF', // clean white cards
+    secondary: '#64748B', // Slate 500 - Perfect for secondary text
+
+    success: '#059669', // Emerald 600 - Readable Green
+    successLight: '#34D399',
+    danger: '#DC2626', // Red 600 - Readable Red
+    dangerLight: '#F87171',
+    warning: '#D97706', // Amber 600
+    info: '#0284C7', // Sky 600
+
+    background: '#F1F5F9', // Slate 100 - Very subtle gray for app background
+    backgroundSecondary: '#E2E8F0', // Slate 200
+
+    surface: '#FFFFFF', // Pure White for cards
     surfaceElevated: '#FFFFFF',
 
-    text: '#1A1A1A', // almost black, professional
-    textSecondary: '#6B6B6B', // medium gray
-    textTertiary: '#9CA3AF', // light gray
+    text: '#0F172A', // Slate 900 - High contrast black
+    textSecondary: '#475569', // Slate 600
+    textTertiary: '#94A3B8', // Slate 400
 
-    border: '#E5E5E5', // very subtle borders
-    borderLight: '#F0F0F0',
+    border: '#E2E8F0', // Slate 200 - Subtle borders
+    borderLight: '#F1F5F9',
 
-    shadow: 'rgba(0, 0, 0, 0.08)', // subtle realistic shadows
+    shadow: 'rgba(15, 23, 42, 0.05)', // Very subtle slate shadow
   },
   dark: {
-    // True dark mode - inspired by modern fintech apps
-    primary: '#3B82F6', // brighter blue for dark backgrounds
+    // Professional Dark Mode (Not Neon)
+    primary: '#3B82F6',
     primaryLight: '#60A5FA',
     primaryDark: '#2563EB',
-    secondary: '#9CA3AF', // light gray
-    success: '#10B981', // emerald
+
+    secondary: '#94A3B8',
+
+    success: '#10B981',
     successLight: '#34D399',
-    danger: '#EF4444', // red
+    danger: '#EF4444',
     dangerLight: '#F87171',
-    warning: '#F59E0B', // amber
-    info: '#0EA5E9', // sky blue
+    warning: '#F59E0B',
+    info: '#0EA5E9',
 
-    background: '#0B0B0B', // true dark, not gray
-    backgroundSecondary: '#151515',
-    surface: '#1A1A1A', // slightly lighter for card contrast
-    surfaceElevated: '#252525',
+    background: '#0F172A', // Slate 900
+    backgroundSecondary: '#1E293B', // Slate 800
 
-    text: '#FFFFFF', // pure white
-    textSecondary: '#9CA3AF', // lighter gray
-    textTertiary: '#6B7280', // medium gray
+    surface: '#1E293B', // Slate 800
+    surfaceElevated: '#334155', // Slate 700
 
-    border: '#2A2A2A', // very subtle in dark mode
-    borderLight: '#1F1F1F',
+    text: '#F8FAFC', // Slate 50
+    textSecondary: '#CBD5E1', // Slate 300
+    textTertiary: '#64748B', // Slate 500
 
-    shadow: 'rgba(0, 0, 0, 0.4)', // darker shadows for depth
+    border: '#334155',
+    borderLight: '#1E293B',
+
+    shadow: 'rgba(0, 0, 0, 0.3)',
   },
 };
 
@@ -94,8 +100,8 @@ export const Spacing = {
 };
 
 export const BorderRadius = {
-  sm: 8,
-  base: 12,
+  sm: 6,
+  base: 12, // Standard modern radius
   lg: 16,
   xl: 20,
   '2xl': 24,
@@ -103,67 +109,42 @@ export const BorderRadius = {
 };
 
 export const Shadows = {
-  // Subtle, professional shadows - no heavy blur effects
+  // Clean, modern, diffused shadows
   sm: {
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
   base: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowRadius: 6,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 15,
     elevation: 4,
   },
-  xl: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+  lg: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.1,
+    shadowRadius: 25,
+    elevation: 8,
   },
+  // Removed "glow" as it's not fit for clean UI
 };
 
 export const Gradients = {
-  // Minimal gradients - only for CTAs and special elements
-  primary: ['#0066FF', '#0052CC'], // subtle blue gradient
-  success: ['#10B981', '#059669'], // emerald gradient
-  danger: ['#EF4444', '#DC2626'], // red gradient
-  warning: ['#F59E0B', '#D97706'], // amber gradient
-  neutral: ['#6B7280', '#4B5563'], // gray gradient
-};
-
-export const Animation = {
-  durations: {
-    fast: 150,
-    base: 250,
-    slow: 400,
-  },
-  springs: {
-    smooth: {
-      damping: 15,
-      stiffness: 150,
-    },
-    bouncy: {
-      damping: 10,
-      stiffness: 100,
-    },
-  },
+  // Subtle gradients only
+  primary: ['#2563EB', '#1D4ED8'],
+  success: ['#059669', '#047857'],
+  danger: ['#DC2626', '#B91C1C'],
+  // No glass/overlay gradients needed for this clean look
 };
