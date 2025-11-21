@@ -1,16 +1,16 @@
-import { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { initDatabase } from '@/database/init';
-import { getTransactionById, deleteTransaction } from '@/database/transactionsService';
-import { getPersonWithBalance } from '@/database/peopleService';
-import type { Transaction, PersonWithBalance } from '@/types/database';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CurrencyText } from '@/components/CurrencyText';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/Theme';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Colors, Spacing, Typography, BorderRadius, Shadows } from '@/constants/Theme';
+import { initDatabase } from '@/database/init';
+import { getPersonWithBalance } from '@/database/peopleService';
+import { deleteTransaction, getTransactionById } from '@/database/transactionsService';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import type { PersonWithBalance, Transaction } from '@/types/database';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,12 +48,12 @@ export default function TransactionDetailScreen() {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Transaction',
-      'Are you sure you want to delete this transaction?',
+      t('delete_transaction_title'),
+      t('delete_transaction_message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -78,7 +78,7 @@ export default function TransactionDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading...
+            {t('loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -108,7 +108,7 @@ export default function TransactionDetailScreen() {
             <Ionicons name="arrow-back" size={28} color={theme.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>
-            Transaction Details
+            {t('transaction_details')}
           </Text>
           <View style={{ width: 40 }} />
         </View>
@@ -153,7 +153,7 @@ export default function TransactionDetailScreen() {
                 <Ionicons name="person-outline" size={24} color={theme.textTertiary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Person
+                    {t('person_label')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {person.name}
@@ -171,7 +171,7 @@ export default function TransactionDetailScreen() {
                 <Ionicons name="document-text-outline" size={24} color={theme.textTertiary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Description
+                    {t('description')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {transaction.description}
@@ -189,7 +189,7 @@ export default function TransactionDetailScreen() {
                   <Ionicons name="pricetag-outline" size={24} color={theme.textTertiary} />
                   <View style={styles.detailText}>
                     <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                      Category
+                      {t('category')}
                     </Text>
                     <Text style={[styles.detailValue, { color: theme.text }]}>
                       {transaction.category}
@@ -207,7 +207,7 @@ export default function TransactionDetailScreen() {
                 <Ionicons name="calendar-outline" size={24} color={theme.textTertiary} />
                 <View style={styles.detailText}>
                   <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                    Date
+                    {t('date')}
                   </Text>
                   <Text style={[styles.detailValue, { color: theme.text }]}>
                     {formatDate(transaction.date)}
@@ -227,7 +227,7 @@ export default function TransactionDetailScreen() {
         >
           <Ionicons name="pencil" size={20} color="#06b6d4" />
           <Text style={[styles.buttonText, { color: '#06b6d4' }]}>
-            Edit
+            {t('edit')}
           </Text>
         </TouchableOpacity>
 
@@ -237,7 +237,7 @@ export default function TransactionDetailScreen() {
         >
           <Ionicons name="trash-outline" size={20} color="#f43f5e" />
           <Text style={[styles.buttonText, { color: '#f43f5e' }]}>
-            Delete
+            {t('delete')}
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,21 +1,23 @@
-import { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { TransactionList } from '@/components/TransactionList';
 import { CurrencyText } from '@/components/CurrencyText';
+import { TransactionList } from '@/components/TransactionList';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { initDatabase } from '@/database/init';
-import { getPersonWithBalance, deletePerson } from '@/database/peopleService';
+import { deletePerson, getPersonWithBalance } from '@/database/peopleService';
 import { getTransactionsByPerson } from '@/database/transactionsService';
-import type { PersonWithBalance, Transaction } from '@/types/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import type { PersonWithBalance, Transaction } from '@/types/database';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PersonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useLanguage();
 
   const [person, setPerson] = useState<PersonWithBalance | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -43,12 +45,12 @@ export default function PersonDetailScreen() {
 
   const handleDeletePerson = () => {
     Alert.alert(
-      'Delete Person',
-      `Are you sure you want to delete ${person?.name}? All associated transactions will also be deleted.`,
+      t('delete_person_title'),
+      t('delete_person_message').replace('{name}', person?.name || ''),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -69,7 +71,7 @@ export default function PersonDetailScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-            Loading...
+            {t('loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -79,14 +81,14 @@ export default function PersonDetailScreen() {
   const balanceColor = person.balance > 0
     ? '#10b981'
     : person.balance < 0
-    ? '#f43f5e'
-    : isDark ? '#9ca3af' : '#6b7280';
+      ? '#f43f5e'
+      : isDark ? '#9ca3af' : '#6b7280';
 
   const balanceLabel = person.balance > 0
-    ? 'Owes you'
+    ? t('owes_you')
     : person.balance < 0
-    ? 'You owe'
-    : 'No balance';
+      ? t('you_owe')
+      : t('no_balance');
 
   const hasBalance = person.balance !== 0;
 
@@ -131,7 +133,7 @@ export default function PersonDetailScreen() {
             }
           ]}>
             <Text style={[styles.balanceCardLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-              Current Balance
+              {t('current_balance')}
             </Text>
             <View style={styles.balanceRow}>
               <Text style={[styles.balanceText, { color: balanceColor }]}>
@@ -147,7 +149,7 @@ export default function PersonDetailScreen() {
               )}
             </View>
             <Text style={[styles.transactionCount, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
-              {person.transactionCount} {person.transactionCount === 1 ? 'transaction' : 'transactions'}
+              {person.transactionCount} {person.transactionCount === 1 ? t('transaction') : t('transactions')}
             </Text>
           </View>
         </View>
@@ -157,7 +159,7 @@ export default function PersonDetailScreen() {
       <View style={styles.transactionsSection}>
         <View style={styles.transactionsHeader}>
           <Text style={[styles.transactionsTitle, { color: isDark ? '#f9fafb' : '#111827' }]}>
-            Transactions
+            {t('transactions_title')}
           </Text>
           <TouchableOpacity
             style={styles.addTransactionButton}
@@ -170,7 +172,7 @@ export default function PersonDetailScreen() {
         <TransactionList
           transactions={transactions}
           showPersonName={false}
-          emptyMessage="No transactions yet. Add one to get started!"
+          emptyMessage={t('no_transactions_start')}
           onTransactionPress={(txn) => router.push(`/transaction/${txn.id}`)}
         />
       </View>

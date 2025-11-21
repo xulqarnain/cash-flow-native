@@ -4,6 +4,8 @@ import { Colors } from '@/constants/Theme';
 import { currencies, useCurrency } from '@/contexts/CurrencyContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { themeOptions, useAppTheme } from '@/contexts/ThemeContext';
+import { createExpense, getAllExpenses } from '@/database/expensesService';
+import { resetDatabase } from '@/database/init';
 import { createPerson, getAllPeople } from '@/database/peopleService';
 import { createSalary, getAllSalaries } from '@/database/salariesService';
 import { createTransaction, getAllTransactions } from '@/database/transactionsService';
@@ -272,8 +274,8 @@ export default function SettingsScreen() {
               options={themeOptions.map(t => ({
                 label: t.name,
                 value: t.id,
-                icon: t.id === 'gradient-black' ? 'color-filter-outline' : t.id === 'glass-blur' ? 'sparkles-outline' : 'square-outline',
-                iconColor: t.id === 'gradient-black' ? '#8b5cf6' : t.id === 'glass-blur' ? themeColors.primary : themeColors.text
+                icon: 'color-filter-outline',
+                iconColor: themeColors.primary
               }))}
               onSelect={(val) => setTheme(val as any)}
             />
