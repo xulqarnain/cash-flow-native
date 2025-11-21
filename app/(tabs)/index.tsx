@@ -1,24 +1,27 @@
-import { useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, RefreshControl, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import { ThemedBackground } from '@/components/ThemedBackground';
-import { GlassCard } from '@/components/GlassCard';
-import { FlowCard } from '@/components/FlowCard';
-import { PersonCard } from '@/components/PersonCard';
 import { CashFlowChart } from '@/components/CashFlowChart';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
-import { initDatabase } from '@/database/init';
-import { getDashboardStats, getChartData, type ChartDataPoint } from '@/database/transactionsService';
-import { getPeopleWithBalances } from '@/database/peopleService';
-import type { PersonWithBalance, DashboardStats } from '@/types/database';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FlowCard } from '@/components/FlowCard';
+import { GlassCard } from '@/components/GlassCard';
+import { PersonCard } from '@/components/PersonCard';
+import { ThemedBackground } from '@/components/ThemedBackground';
 import { Colors, Spacing, Typography } from '@/constants/Theme';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { initDatabase } from '@/database/init';
+import { getPeopleWithBalances } from '@/database/peopleService';
+import { getChartData, getDashboardStats, type ChartDataPoint } from '@/database/transactionsService';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import type { DashboardStats, PersonWithBalance } from '@/types/database';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
+  const { t } = useLanguage();
 
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
@@ -59,78 +62,104 @@ export default function DashboardScreen() {
     }, [])
   );
 
-  const balanceVariant = stats.totalBalance > 0 ? 'success' : stats.totalBalance < 0 ? 'danger' : 'primary';
+  // Calculate Net To Receive and Net To Pay from people balances
+  const totalToReceive = people
+    .filter(p => p.balance > 0)
+    .reduce((sum, p) => sum + p.balance, 0);
+
+  const totalToPay = people
+    .filter(p => p.balance < 0)
+    .reduce((sum, p) => sum + Math.abs(p.balance), 0);
+
+  const netBalance = totalToReceive - totalToPay;
+  const balanceVariant = netBalance > 0 ? 'success' : netBalance < 0 ? 'danger' : 'primary';
 
   return (
     <ThemedBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
         <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.greeting, { color: theme.textSecondary }]}>
-            Welcome back
-          </Text>
-          <Text style={[styles.title, { color: theme.text }]}>
-            Cash Flow
-          </Text>
-        </View>
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={[styles.greeting, { color: theme.textSecondary }]}>
+              {t('welcome_back')}
+            </Text>
+            <Text style={[styles.title, { color: theme.text }]}>
+              {t('cash_flow')}
+            </Text>
+          </View>
 
-        {/* Total Balance Card */}
-        <View style={styles.section}>
-          <GlassCard
-            title="Total Balance"
-            value={stats.totalBalance}
-            subtitle={`${stats.transactionCount} total transactions`}
-            variant={balanceVariant}
-          />
-        </View>
+          {/* Total Balance Card */}
+          <View style={styles.section}>
+            <GlassCard
+              title={t('total_balance')}
+              value={netBalance}
+              subtitle={`${people.length} ${t('people')}`}
+              variant={balanceVariant}
+            />
+          </View>
 
-        {/* Flow Cards */}
-        <View style={styles.flowContainer}>
-          <FlowCard type="incoming" amount={stats.totalIncoming} />
-          <View style={styles.flowSpacer} />
-          <FlowCard type="outgoing" amount={stats.totalOutgoing} />
-        </View>
+          {/* Flow Cards */}
+          <View style={styles.flowContainer}>
+            <FlowCard
+              type="income"
+              amount={totalToReceive}
+              label={t('need_to_receive')}
+              icon="arrow-down"
+              delay={100}
+            />
+            <View style={styles.flowSpacer} />
+            <FlowCard
+              type="expense"
+              amount={totalToPay}
+              label={t('need_to_pay')}
+              icon="arrow-up"
+              delay={200}
+            />
+          </View>
 
-        {/* Cash Flow Chart */}
-        <View style={styles.section}>
-          <CashFlowChart data={chartData} />
-        </View>
+          {/* Cash Flow Chart */}
+          <View style={styles.section}>
+            <CashFlowChart data={chartData} />
+          </View>
 
-        {/* People List */}
-        <View style={[styles.section, { paddingBottom: Platform.OS === 'ios' ? 120 : 108 }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            People ({people.length})
-          </Text>
+          {/* People List */}
+          <View style={[styles.section, { paddingBottom: Platform.OS === 'ios' ? 120 : 108 }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              {t('people')} ({people.length})
+            </Text>
 
-          {people.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: theme.surfaceElevated }]}>
-                <Text style={{ fontSize: 48 }}>💰</Text>
+            {people.length === 0 ? (
+              <View style={styles.emptyState}>
+                <View style={[styles.emptyIcon, { backgroundColor: theme.surfaceElevated }]}>
+                  <Text style={{ fontSize: 48 }}>💰</Text>
+                </View>
+                <Text style={[styles.emptyText, { color: theme.text }]}>
+                  {t('no_people')}
+                </Text>
+                <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+                  {t('tap_to_start')}
+                </Text>
               </View>
-              <Text style={[styles.emptyText, { color: theme.text }]}>
-                No people added yet
-              </Text>
-              <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
-                Tap the + button to start tracking
-              </Text>
-            </View>
-          ) : (
-            people.map((person) => (
-              <PersonCard key={person.id} person={person} />
-            ))
-          )}
-        </View>
-      </ScrollView>
+            ) : (
+              people.map((person) => (
+                <PersonCard
+                  key={person.id}
+                  person={person}
+                  onPress={() => router.push(`/person/${person.id}`)}
+                />
+              ))
+            )}
+          </View>
+        </ScrollView>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton />
+        {/* Floating Action Button */}
+        <FloatingActionButton />
       </SafeAreaView>
     </ThemedBackground>
   );

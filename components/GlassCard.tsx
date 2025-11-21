@@ -1,99 +1,115 @@
-import { useEffect } from 'react';
-import { Text, StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withDelay,
-  Easing,
-  withTiming,
-} from 'react-native-reanimated';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/Theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CurrencyText } from './CurrencyText';
-import { BorderRadius, Shadows, Spacing, Typography, Colors } from '@/constants/Theme';
 
 interface GlassCardProps {
   title: string;
   value: number;
   subtitle?: string;
   variant?: 'primary' | 'success' | 'danger';
+  style?: ViewStyle;
+  delay?: number;
 }
 
-export function GlassCard({ title, value, subtitle, variant = 'primary' }: GlassCardProps) {
+export function GlassCard({
+  title,
+  value,
+  subtitle,
+  variant = 'primary',
+  style,
+  delay = 0
+}: GlassCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const themeColors = isDark ? Colors.dark : Colors.light;
+  const theme = isDark ? Colors.dark : Colors.light;
 
-  const scale = useSharedValue(0.95);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    opacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) });
-    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  const bgColors = {
-    primary: themeColors.primary,
-    success: themeColors.success,
-    danger: themeColors.danger,
+  const getVariantColor = () => {
+    switch (variant) {
+      case 'success': return theme.success;
+      case 'danger': return theme.danger;
+      default: return theme.primary;
+    }
   };
+
+  const accentColor = getVariantColor();
 
   return (
     <Animated.View
+      entering={FadeInDown.delay(delay).springify()}
       style={[
-        styles.card,
+        styles.container,
         {
-          backgroundColor: bgColors[variant],
-          borderColor: themeColors.border,
-          borderWidth: 1
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
         },
-        Shadows.lg,
-        animatedStyle
+        Shadows.base,
+        style
       ]}
     >
-      <Text style={styles.title}>{title}</Text>
-      <CurrencyText
-        amount={value}
-        symbolSize={14}
-        amountSize={Typography.sizes['4xl']}
-        color="#ffffff"
-      />
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: theme.textSecondary }]}>{title}</Text>
+          {/* Subtle accent indicator */}
+          <View style={[styles.indicator, { backgroundColor: accentColor }]} />
+        </View>
+
+        <View style={styles.valueContainer}>
+          <CurrencyText
+            amount={value}
+            style={[styles.value, { color: theme.text }]}
+            amountSize={32} // Typography.sizes['3xl'] is ~30-32
+            color={theme.text}
+          />
+        </View>
+
+        {subtitle && (
+          <Text style={[styles.subtitle, { color: theme.textTertiary }]}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  container: {
     borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    minHeight: 140,
-    justifyContent: 'center',
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginVertical: Spacing.sm,
+  },
+  content: {
+    padding: Spacing.lg,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
   title: {
     fontSize: Typography.sizes.sm,
-    color: '#ffffff',
-    opacity: 0.95,
-    marginBottom: Spacing.sm,
-    fontWeight: Typography.weights.semibold,
-    textTransform: 'uppercase',
+    fontWeight: Typography.weights.medium,
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  indicator: {
+    width: 6,
+    height: 6,
+    borderRadius: BorderRadius.full,
+  },
+  valueContainer: {
+    marginVertical: Spacing.xs,
   },
   value: {
-    fontSize: Typography.sizes['4xl'],
-    fontWeight: Typography.weights.extrabold,
-    color: '#ffffff',
-    marginBottom: Spacing.xs,
+    fontSize: Typography.sizes['3xl'],
+    fontWeight: Typography.weights.bold,
   },
   subtitle: {
-    fontSize: Typography.sizes.xs,
-    color: '#ffffff',
-    opacity: 0.9,
-    fontWeight: Typography.weights.medium,
+    fontSize: Typography.sizes.sm,
+    marginTop: Spacing.xs,
   },
 });

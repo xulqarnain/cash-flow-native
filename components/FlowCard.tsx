@@ -1,73 +1,53 @@
-import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withDelay,
-  Easing,
-  withTiming,
-} from 'react-native-reanimated';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/Theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CurrencyText } from './CurrencyText';
-import { Colors, BorderRadius, Shadows, Spacing, Typography } from '@/constants/Theme';
 
 interface FlowCardProps {
-  type: 'incoming' | 'outgoing';
+  type: 'income' | 'expense';
   amount: number;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
   count?: number;
+  style?: ViewStyle;
+  delay?: number;
 }
 
-export function FlowCard({ type, amount, count }: FlowCardProps) {
+export function FlowCard({
+  type,
+  amount,
+  label,
+  icon,
+  count,
+  style,
+  delay = 0
+}: FlowCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? Colors.dark : Colors.light;
-  const themeColors = isDark ? Colors.dark : Colors.light;
 
-  const isIncoming = type === 'incoming';
-  const icon = isIncoming ? 'trending-down' : 'trending-up';
-  const label = isIncoming ? 'Money In' : 'Money Out';
-
-  const scale = useSharedValue(0.9);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    opacity.value = withDelay(
-      isIncoming ? 100 : 200,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) })
-    );
-    scale.value = withDelay(
-      isIncoming ? 100 : 200,
-      withSpring(1, { damping: 15, stiffness: 150 })
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  const iconBgColor = isIncoming
-    ? themeColors.success
-    : themeColors.danger;
+  const isIncoming = type === 'income';
+  const iconColor = isIncoming ? theme.success : theme.danger;
+  const iconBg = isIncoming ? theme.successLight + '20' : theme.dangerLight + '20'; // 20% opacity
 
   return (
-    <Animated.View style={[
-      styles.card,
-      {
-        backgroundColor: theme.surface,
-        borderColor: theme.border,
-        borderWidth: 1
-      },
-      Shadows.md,
-      animatedStyle,
-    ]}>
+    <Animated.View
+      entering={FadeInDown.delay(delay).springify()}
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        },
+        Shadows.sm,
+        style
+      ]}
+    >
       <View style={styles.header}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: iconBgColor }]}
-        >
-          <Ionicons name={icon} size={20} color="#ffffff" />
+        <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon} size={18} color={iconColor} />
         </View>
         <Text style={[styles.label, { color: theme.textSecondary }]}>
           {label}
@@ -76,14 +56,14 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
 
       <CurrencyText
         amount={amount}
-        symbolSize={10}
-        amountSize={Typography.sizes['2xl']}
+        style={[styles.amount, { color: theme.text }]}
+        amountSize={20}
         color={theme.text}
       />
 
       {count !== undefined && (
         <Text style={[styles.count, { color: theme.textTertiary }]}>
-          {count} {count === 1 ? 'transaction' : 'transactions'}
+          {count} trans.
         </Text>
       )}
     </Animated.View>
@@ -91,35 +71,37 @@ export function FlowCard({ type, amount, count }: FlowCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
+  container: {
     flex: 1,
+    padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderWidth: 1,
+    marginHorizontal: Spacing.xs,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: BorderRadius.base,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.sm,
   },
   label: {
-    fontSize: Typography.sizes.sm,
-    marginLeft: Spacing.sm,
-    fontWeight: Typography.weights.semibold,
-  },
-  amount: {
-    fontSize: Typography.sizes['2xl'],
-    fontWeight: Typography.weights.bold,
-    marginBottom: Spacing.xs,
-  },
-  count: {
     fontSize: Typography.sizes.xs,
     fontWeight: Typography.weights.medium,
+    flex: 1,
+  },
+  amount: {
+    fontWeight: Typography.weights.bold,
+    marginBottom: 2,
+  },
+  count: {
+    fontSize: 10,
+    marginTop: Spacing.xs,
   },
 });
